@@ -12,7 +12,10 @@
 /build
 
 # gh-pages cache
-/node_modules/.cache/
+node_modules/.cache/
+/node_modules/.cache
+node_modules/.cache/**/*
+.cache/
 
 # misc
 .DS_Store
