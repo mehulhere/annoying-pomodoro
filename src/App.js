@@ -161,7 +161,7 @@ function App() {
     };
     
     setMotivationalQuote(getRandomQuote());
-    notificationSound.current = new Audio('/assets/notification.mp3');
+    notificationSound.current = new Audio(`${process.env.PUBLIC_URL}/assets/notification.mp3`);
 
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission().then(permission => {
@@ -172,7 +172,7 @@ function App() {
 
   const playNotificationSound = useCallback(() => {
     if (soundEnabled) {
-    notificationSound.current?.play().catch(error => console.error("Error playing sound:", error));
+      notificationSound.current?.play().catch(error => console.error("Error playing sound:", error));
     }
   }, [soundEnabled]);
 

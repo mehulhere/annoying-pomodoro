@@ -2,7 +2,7 @@
 
 **Initial State:** The user had a TimeBoxing application with a functional Pomodoro timer, task management, and a scoring system. The UI had several areas needing refinement, and new features were requested.
 
-**Key UI/UX Issues Addressed:**
+**Key UI/UX Issues Addressed (Earlier):**
 
 1.  **Task Item Strikethrough**: Improved the appearance of the strikethrough for completed tasks in `TaskItem.jsx` for better visual distinction (thicker, gray line) and added a `CheckCircle` icon.
 2.  **"Done!" and "Extend Time" Button Logic**: 
@@ -23,7 +23,7 @@
         *   Fixed ring clipping by adding padding to the parent `ul` in `TaskList.jsx`.
         *   Ensured the active task's cyan ring (`ring-2 ring-cyanAccent`) is persistent and not just a hover effect by refining conditional class application.
 
-**New Features Implemented:**
+**New Features Implemented (Earlier):**
 
 1.  **Total Tasks in Daily Stats**: Added a display of the total number of tasks in the "Daily Stats" section in `App.js`.
 2.  **Stats Moved to Header**: Relocated Score, Tasks Completed, and Focus Time from the footer to the main header card in `App.js`.
@@ -42,6 +42,72 @@
 8.  **Settings View (Initial Setup)**:
     *   Added a "Settings" icon and button to the side navigation.
     *   Created a placeholder card for the "Settings" view.
+
+**Key Files Modified Extensively (Earlier):**
+
+*   `src/App.js` (state management, layout, timer logic, view rendering)
+*   `src/components/TaskItem.jsx` (task item UI, active/paused/completed states, button logic)
+*   `src/components/TaskList.jsx` (prop forwarding, list container styling)
+*   `src/components/ui/Button.jsx` (styling variants, hover effects, sizing)
+
+---
+
+## Phase 2: Settings Implementation, UI Polish & Scoring Overhaul (Recent Changes)
+
+**Deployment Setup:**
+
+*   **GitHub Pages Configuration**: 
+    *   Installed `gh-pages` package.
+    *   Updated `package.json` with `homepage` URL (`https://mehulhere.github.io/timeboxing`) and `predeploy`/`deploy` scripts.
+
+**Complete Settings Panel Implementation (`App.js`):**
+
+*   **Motivational Quote Categories**: Added "Nagging", "Rude", "Annoying", and "Abusive" quote types, selectable in settings and persisted in localStorage.
+*   **Theme Toggle**: Implemented Light/Dark theme switching, saved to localStorage, and dynamically applied to the `body`.
+*   **Sound Notifications Toggle**: Added a setting to enable/disable sound notifications, persisted in localStorage.
+*   **Break Duration Slider**: Users can now set the default break duration (1-15 minutes) via a slider; value persisted.
+*   **Allow Extending Breaks Toggle**: Added a "Yes/No" setting to control if breaks can be extended, persisted.
+*   **Points System Info**: Displayed current point values (per task, extension penalty, new time bonus) in settings.
+*   **About Section**: Added an "About" section with app version.
+*   **UI Enhancements**: Increased font sizes and icon sizes within the settings panel for better readability and a less cramped appearance, including responsive adjustments for medium screens.
+*   **localStorage**: All settings are now saved to and loaded from localStorage.
+
+**UI/UX Refinements (`App.js`, `TaskList.jsx`, `TaskItem.jsx`):**
+
+1.  **TaskList Empty State**: Reduced padding and icon size in the empty state message of `TaskList.jsx`.
+2.  **Motivation Type Button Hover**: Changed hover effect for motivation type buttons in settings to `bg-cyanAccent/20` and `text-cyanAccent` for better visibility.
+3.  **Header & Navigation Font Sizes**: Increased font size of the main title, motivational quote, stat labels/values in the header, and text in side navigation buttons.
+4.  **Timer Control Buttons (Focus View)**:
+    *   Increased font size for "Start/Pause/Resume", "Done!/Skip Break", and "Extend" buttons.
+    *   Adjusted padding and margins to prevent undue height increases.
+    *   Changed "Extend Time" text to "Extend".
+5.  **Plan View - "No tasks yet" Centering**: Ensured the "No tasks yet..." message in `TaskList.jsx` is correctly centered vertically and horizontally.
+6.  **Plan View - Stat Color**: Changed the bullet point color for "Total Planned" in daily stats to `bg-purple-500` for better visibility.
+7.  **Focus View - Break Timer**: 
+    *   Corrected the text to show "BREAK IN PROGRESS" (was showing "FOCUS IN PROGRESS").
+    *   Changed the timer color during breaks to `text-emerald-400` for visual distinction.
+8.  **Focus View - "Extend" Button for Breaks**: Logic updated to allow extending breaks even while the break timer is running (if the setting is enabled). The prompt message was also updated for this context.
+9.  **Task List - Completed Task Duration**: Removed the strikethrough from the duration of completed tasks in `TaskItem.jsx`; only color changes now.
+10. **Timer Font Size**: Slightly decreased the main timer font (`00:00`) in the Focus view.
+11. **Navigation Padding**: Added slight left padding to side navigation buttons.
+
+**Scoring System Overhaul (`App.js`):**
+
+*   **Bonus Points Calculation**: Changed from a per-second-saved model to a percentage-based model. Bonus is now `percentageTimeSaved * MAX_TIME_SAVED_BONUS` (e.g., up to 10 points).
+*   This makes the bonus fairer across tasks of different estimated durations.
+
+**Focus Time Stat Enhancement (`App.js`):**
+
+*   The "Focus Time" in the header now accurately reflects the total accumulated time spent on completed tasks plus the time spent so far on the currently running task. It updates live.
+
+**ESLint Warning Fixes:**
+
+*   Resolved various `eslint` warnings across `App.js`, `src/components/ui/Card.jsx`, and `src/hooks/use-toast.js`, including:
+    *   Removing unused imports and variables.
+    *   Correcting `useCallback` dependency arrays.
+    *   Suppressing a `jsx-a11y/heading-has-content` warning for `CardTitle` where usage was correct.
+    *   Fixing `no-useless-escape` warnings in toast messages by ensuring correct template literal usage.
+    *   Corrected a `ReferenceError: Cannot access 'formatTime' before initialization` by moving helper function definitions.
 
 **Pending User Requests (for future implementation):**
 
