@@ -6,23 +6,43 @@ An interactive Pomodoro timer application designed to keep you focused and produ
 
 *   **Task Management**: Add, remove, and mark tasks as complete.
 *   **Pomodoro Timer**: Classic Pomodoro timer for focused work sessions.
-*   **Customizable Break Timer**: Automatic breaks after task completion, with an option to skip.
-*   **Time Extension**: Option to extend the timer if a task needs more time.
-*   **Motivational (Annoying) Quotes**: Customizable quote styles (Nagging, Rude, Annoying, Abusive - *to be implemented*) displayed to keep you engaged (or annoyed into action).
-*   **Scoring System**: Earn points for completing tasks, with bonuses for finishing early and penalties for extensions.
+*   **Configurable Break Timer**: 
+    *   Automatic breaks after task completion.
+    *   Adjustable default break duration (1-15 minutes) via settings.
+    *   Option to skip breaks.
+*   **Flexible Time Extension**: 
+    *   Option to extend the timer for tasks (when timer reaches 00:00).
+    *   Option to extend breaks, even while the break timer is running (configurable via settings).
+*   **Motivational Quotes**: 
+    *   Four customizable quote categories: Nagging, Rude, Annoying, Abusive.
+    *   Quotes change periodically to keep you engaged.
+*   **Fair Scoring System**: 
+    *   Earn base points for completing tasks.
+    *   Bonus points awarded based on the *percentage* of estimated time saved (up to a max bonus).
+    *   Penalties for extending tasks.
 *   **Spirals (Idea Logging)**: A place to jot down ideas or future tasks without breaking your current focus, which can later be moved to the main task list.
 *   **Comprehensive Stats**: 
-    *   In-header display: Score, Tasks Completed, current Focus Time.
-    *   Daily Stats in Plan view: Total Tasks, Total Planned Time, Remaining Time, P(Not Finishing).
+    *   In-header display: Score, Tasks Completed, total accumulated Focus Time (updates live).
+    *   Daily Stats in Plan view: Total Tasks, Total Planned Time, Estimated Remaining Time, P(Not Finishing).
+    *   Calculated Idle Time displayed in the header.
 *   **Multiple Views**: 
     *   **Focus View**: Main timer and current task display.
     *   **Plan View**: Task planning, task list, and daily stats.
     *   **Spirals View**: Manage your ideas and future tasks.
-    *   **Settings View**: Customize your experience (*partially implemented*).
+    *   **Settings View**: Customize your application experience.
+*   **Rich Settings Panel**:
+    *   Theme selection (Light/Dark mode).
+    *   Motivation type selection.
+    *   Sound notification toggle.
+    *   Default break duration slider.
+    *   Toggle for allowing break extensions.
+    *   Information display for the points system.
+    *   About section with app version.
 *   **Desktop Notifications**: Get notified when tasks or breaks end.
-*   **Sound Notifications**: Audible alerts for timer events.
+*   **Sound Notifications**: Audible alerts for timer events (toggleable).
 *   **Responsive Design**: UI adapts to different screen sizes, designed to fit within a single viewport.
-*   **Dark Theme**: Easy on the eyes for extended work sessions (Light mode *to be implemented*).
+*   **GitHub Pages Deployment Ready**: Configured for easy deployment using `gh-pages`.
+*   **Persistence**: All settings are saved to LocalStorage and persist across sessions.
 
 ## Tech Stack
 
@@ -59,26 +79,31 @@ npm start
 ```
 This will start the development server, and you can view the application in your browser, usually at `http://localhost:3000`.
 
+### Deploying to GitHub Pages
+
+1.  Ensure `package.json` has the correct `homepage` URL.
+2.  Run the deployment script:
+    ```bash
+    npm run deploy
+    ```
+3.  Configure your GitHub repository settings to use the `gh-pages` branch for GitHub Pages.
+
 ## Key Components & Logic
 
-*   **`App.js`**: The main application component that manages state for tasks, spirals, timer, score, active view, and settings. It orchestrates the interactions between various child components.
+*   **`App.js`**: The main application component that manages state for tasks, spirals, timer, score, active view, and all settings. It orchestrates the interactions between various child components and handles core application logic.
 *   **Timer Logic**: Core timer functionality (`startTimer`, `handlePauseTimer`, `handleResumeTimer`, `handleTaskDone`, `handleExtendTimer`, `useEffect` for countdown) is primarily managed within `App.js`.
 *   **Task Components**:
     *   `TaskForm.jsx`: For adding new tasks.
-    *   `TaskList.jsx`: Displays the list of tasks.
-    *   `TaskItem.jsx`: Renders individual task items with controls (start, remove) and status indicators (active, paused, done).
+    *   `TaskList.jsx`: Displays the list of tasks, including an empty state.
+    *   `TaskItem.jsx`: Renders individual task items with controls and status indicators.
 *   **Spiral Components**:
     *   `SpiralForm.jsx`: For adding new spirals.
     *   `SpiralList.jsx`: Displays the list of spirals with controls.
 *   **UI Components (`src/components/ui`)**: Reusable UI elements like `Button.jsx`, `Card.jsx`, `PromptDialog.jsx`.
-*   **State Management**: Primarily uses React's `useState`, `useEffect`, and `useCallback` hooks for managing component and application-level state.
+*   **State Management**: Primarily uses React's `useState`, `useEffect`, and `useCallback` hooks for managing component and application-level state. Settings are persisted to LocalStorage.
 
-## Future Enhancements (Planned/Requested)
+## Future Enhancements (Ideas)
 
-*   Full implementation of various settings:
-    *   Light/Dark Mode toggle.
-    *   Choice of motivational quote styles (Nagging, Rude, Annoying, Abusive).
-    *   Customizable default task/break durations.
-    *   Notification sound choices.
-*   Calculation and display of "Idle Time" in the header stats.
-*   Persistence of tasks and settings (e.g., using LocalStorage). 
+*   Customizable notification sound choices.
+*   More detailed historical stats or trends.
+*   Export/Import tasks or settings. 
