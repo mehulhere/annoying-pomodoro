@@ -61,7 +61,7 @@ const quoteCategories = {
 };
 
 const POINTS_PER_TASK = 10;
-const BONUS_POINTS_FACTOR = 0.5; // points per second saved
+const MAX_TIME_SAVED_BONUS = 10; // Max bonus points for saving time, scaled by percentage
 const POINTS_DEDUCTION_FOR_EXTENSION = 2; // Penalty for extending a task
 
 // Moved helper functions before their usage in useCallback hooks
@@ -331,23 +331,33 @@ function App() {
 
     const task = tasks[currentTaskIndex];
     let pointsEarnedThisTask = POINTS_PER_TASK;
+    
     const timeWhenDone = task.timerStartTime ? (Date.now() - task.timerStartTime) / 1000 : task.timeSpentSeconds;
-    const actualTimeSpent = timeWhenDone < task.duration * 60 ? timeWhenDone : task.duration * 60;
+    // For bonus calculation, actualTimeSpent should not exceed original estimated duration.
+    // If they finish early, actualTimeSpent will be less.
+    // If they finish late (timer ran out and they clicked done), it will be task.duration * 60 from the timer logic.
+    const actualTimeSpentForBonusCalc = Math.min(timeWhenDone, task.estimatedDuration * 60);
+
     const estimatedSeconds = task.estimatedDuration * 60;
-    if (actualTimeSpent < estimatedSeconds) {
-      const secondsSaved = estimatedSeconds - actualTimeSpent;
-      const bonus = Math.floor(secondsSaved * BONUS_POINTS_FACTOR);
+    if (estimatedSeconds > 0) {
+      const secondsSaved = Math.max(0, estimatedSeconds - actualTimeSpentForBonusCalc);
+      const percentageTimeSaved = secondsSaved / estimatedSeconds;
+      const bonus = Math.floor(percentageTimeSaved * MAX_TIME_SAVED_BONUS);
       pointsEarnedThisTask += bonus;
     }
     setScore(prevScore => prevScore + pointsEarnedThisTask);
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
 
+    // Use actualTimeSpent (which could be > estimated if they let timer run out and clicked done)
+    // for the task's final timeSpentSeconds for record keeping.
+    const finalTimeSpentSeconds = timeWhenDone;
+
     setTasks(prevTasks => prevTasks.map((t, idx) =>
       idx === currentTaskIndex ? { 
         ...t, 
         completed: true, 
-        timeSpentSeconds: actualTimeSpent, // Update with more precise time
-        duration: actualTimeSpent / 60, // Reflect actual time in duration field for display/stats if needed
+        timeSpentSeconds: finalTimeSpentSeconds, 
+        duration: finalTimeSpentSeconds / 60, // Update duration to reflect actual time spent
         completionTimestamp: Date.now() 
       } : t
     ));
@@ -356,17 +366,16 @@ function App() {
         clearInterval(timerIntervalId.current);
         timerIntervalId.current = null;
     }
-    setIsTimerActive(false); // Task timer is now definitively stopped.
+    setIsTimerActive(false); 
     
     playNotificationSound();
     showDesktopNotification("Task Finished!", `"${task.name}" is complete.`);
     toast({ title: "Task Finished!", description: `"${task.name}" complete. Points: +${pointsEarnedThisTask}` });
     
-    // Start a break automatically
     setIsBreakTime(true);
     setTimeRemaining(breakDuration * 60);
-    setCurrentTaskIndex(-1); // No task is active during break
-    setIsTimerActive(true); // Signal useEffect to start the break timer
+    setCurrentTaskIndex(-1); 
+    setIsTimerActive(true); 
     toast({title: "Break Time!", description: `Taking a ${breakDuration} minute break.`});
 
   }, [tasks, currentTaskIndex, playNotificationSound, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive]);
@@ -1109,12 +1118,15 @@ function App() {
                       </div>
                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
                         <span>Time Bonus:</span>
-                        <span className="text-cyanAccent">{BONUS_POINTS_FACTOR} pts/s</span>
+                        <span className="text-cyanAccent">Up to {MAX_TIME_SAVED_BONUS} pts</span>
                       </div>
                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
                         <span>Extension Penalty:</span>
                         <span className="text-cyanAccent">-{POINTS_DEDUCTION_FOR_EXTENSION} pts</span>
                       </div>
+                    </div>
+                    <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
+                      Time bonus is scaled by the percentage of estimated time saved.
                     </div>
                   </div>
 
