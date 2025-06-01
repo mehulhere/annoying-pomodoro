@@ -635,7 +635,7 @@ function App() {
       title: `Extend ${context}`,
       message: isBreakTime && timeRemaining > 0 ? 
                  `Current break time is ${currentTimerValue}. How many additional minutes would you like to add?` :
-                 `How many minutes would you like to add to the ${context}? ${!isBreakTime && tasks[currentTaskIndex] ? 'Timer is currently at ${formatTime(timeRemaining)}.' : ''}`, // Updated message
+                 `How many minutes would you like to add to the ${context}? ${!isBreakTime && tasks[currentTaskIndex] ? `Timer is currently at ${formatTime(timeRemaining)}.` : ''}`, // Updated message
       inputLabel: 'Minutes to add:',
       defaultValue: defaultExtension,
       confirmText: 'Extend',
@@ -724,7 +724,7 @@ function App() {
         timerIntervalId.current = null; 
       }
     };
-  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration, showDesktopNotification]); // Added missing dependencies
+  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration]); // Removed duplicate showDesktopNotification
 
   // Effect for Idle Time Calculation
   useEffect(() => {
@@ -751,8 +751,8 @@ function App() {
     }
   }, [isTimerActive, sessionStartTime, calculateFocusTime, setDisplayedIdleTime]); // Added missing dependencies
   
-  // Calculate total focus time from completed tasks
-  const calculateFocusTime = () => {
+  // Calculate total focus time from completed tasks - Wrapped in useCallback
+  const calculateFocusTime = useCallback(() => {
     return tasks.reduce((total, task) => {
       if (task.completed) {
         // For completed tasks, use the actual time spent
@@ -765,7 +765,7 @@ function App() {
       }
       return total + (task.timeSpentSeconds || 0); // Added task.timeSpentSeconds fallback
     }, 0);
-  };
+  }, [tasks, currentTaskIndex, isBreakTime]); // Added dependencies
 
   // Formatting and Display Logic
   const timerDisplayColor = () => {
@@ -1185,7 +1185,7 @@ function App() {
                 <div className="flex justify-center gap-4 pb-4">
                   <button
                     onClick={handleMasterPlayPause}
-                    disabled={!isTimerActive && timeRemaining === 0 && tasks.findIndex(t => !t.completed) === -1 && !isBreakTime}
+                    disabled={isTimerActive || (!isTimerActive && (tasks.findIndex(t => !t.completed) === -1 || (currentTaskIndex !== -1 && timeRemaining === 0 && !isBreakTime)))} // Disable if active, or if not active and (no uncompleted tasks OR (current task timer is 0 and not a break))
                     className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
