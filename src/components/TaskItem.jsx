@@ -2,10 +2,11 @@ import React from 'react';
 import { Button } from './ui/Button';
 import { Play, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
-function TaskItem({ task, onRemoveTask, onStartTask, currentTaskIndex, activeTaskOriginalId, isTimerActive, isBreakTime, timeRemaining }) {
+function TaskItem({ task, onRemoveTask, onStartTask, currentTaskIndex, activeTaskOriginalId, isTimerActive, isBreakTime, timeRemaining, onMarkTaskDone }) {
     const isActiveCore = task.id === activeTaskOriginalId && !isBreakTime && !task.completed;
     const isRunning = isActiveCore && isTimerActive;
     const isPaused = isActiveCore && !isTimerActive && task.started && timeRemaining > 0;
+    const isFinishedNotCompleted = isActiveCore && !isTimerActive && task.started && timeRemaining === 0;
 
     const baseClasses = 'p-3.5 mb-1 rounded-lg shadow-sm flex justify-between items-center transition-all duration-300 ease-in-out group hover:shadow-md';
 
@@ -57,7 +58,7 @@ function TaskItem({ task, onRemoveTask, onStartTask, currentTaskIndex, activeTas
             </div>
 
             <div className="flex items-center space-x-2 flex-shrink-0 ml-2 justify-end">
-                {!task.completed && !isRunning && !isPaused && (
+                {!task.completed && !isRunning && !isPaused && !isFinishedNotCompleted && (
                     <Button
                         variant="buttonGreen"
                         size="sm"
@@ -67,6 +68,18 @@ function TaskItem({ task, onRemoveTask, onStartTask, currentTaskIndex, activeTas
                         className="w-auto px-3 bg-gradient-to-r from-green-600/90 to-emerald-500/90 hover:opacity-90 transition-all duration-300 shadow-sm"
                     >
                         <Play className="h-4 w-4 mr-1.5" /> Start
+                    </Button>
+                )}
+
+                {isFinishedNotCompleted && (
+                    <Button
+                        variant="buttonGreen"
+                        size="sm"
+                        onClick={() => onMarkTaskDone()}
+                        aria-label={`Mark task ${task.name} as done`}
+                        className="w-auto px-3 bg-gradient-to-r from-emerald-600/90 to-green-500/90 hover:opacity-90 transition-all duration-300 shadow-sm"
+                    >
+                        <CheckCircle className="h-4 w-4 mr-1.5" /> Done
                     </Button>
                 )}
 

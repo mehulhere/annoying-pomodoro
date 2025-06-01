@@ -82,6 +82,7 @@ const formatDurationToHoursMinutes = (totalSecondsInput) => {
 
 function App() {
   const [motivationalQuote, setMotivationalQuote] = useState("");
+  const [showQuote, setShowQuote] = useState(false); // New state to control quote visibility
   const [tasks, setTasks] = useState([]);
   const [spirals, setSpirals] = useState([]); // For spirals feature
   
@@ -348,6 +349,15 @@ function App() {
     };
     setMotivationalQuote(getRandomQuote());
   }, [quoteType]);
+
+  // Show quote after 10 seconds of loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowQuote(true);
+    }, 2500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const playNotificationSound = useCallback(() => {
     console.log("playNotificationSound");
@@ -747,63 +757,6 @@ function App() {
         timerIntervalId.current = null; 
       }
     };
-  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration]); // Dependencies should be sufficient now.
-
-  // Effect for Timer Countdown
-  useEffect(() => { // Added missing dependencies
-    if (isTimerActive && timeRemaining > 0) {
-      // If timer should be active and there's time, start the interval
-      timerIntervalId.current = setInterval(() => {
-        setTimeRemaining(prevTime => {
-          if (prevTime <= 1) { 
-            // Stop the interval first
-            if(timerIntervalId.current) clearInterval(timerIntervalId.current);
-            timerIntervalId.current = null;
-            setIsTimerActive(false); // Timer is no longer active
-            
-            if (isBreakTime) {
-              playNotificationSound();
-              showDesktopNotification("Break Over!", "Your break time is up.");
-              toast({ title: "Break Finished!", description: "Ready for the next task?" });
-              setIsBreakTime(false); // Break is over
-              setCurrentTaskIndex(-1); // No active task
-            } else if (currentTaskIndex !== -1 && tasks[currentTaskIndex]) {
-              const task = tasks[currentTaskIndex];
-              // Increment timeSpentSeconds one last time for the final second
-              setTasks(prevTasks => prevTasks.map((t, idx) => 
-                idx === currentTaskIndex ? {...t, timeSpentSeconds: (t.timeSpentSeconds || 0) + 1} : t
-              ));
-              playNotificationSound();
-              showDesktopNotification("Time's Up!", `Time for "${task.name}" is up.`);
-              toast({ title: "Time's Up!", description: `"${task.name}" timer finished. Mark done or extend.` });
-              // User needs to manually mark done or extend. isTimerActive is false.
-            }
-            return 0; // Time is up
-          }
-
-          // Increment timeSpentSeconds for active task during normal countdown
-          if (currentTaskIndex !== -1 && !isBreakTime && tasks[currentTaskIndex]) {
-            setTasks(prevTasks => prevTasks.map((task, idx) => 
-                idx === currentTaskIndex ? {...task, timeSpentSeconds: (task.timeSpentSeconds || 0) + 1} : task
-            ));
-          }
-          return prevTime - 1; // Countdown
-        });
-      }, 1000);
-    } else {
-      // If timer shouldn't be active or time is up, ensure interval is cleared
-      if (timerIntervalId.current) {
-        clearInterval(timerIntervalId.current);
-        timerIntervalId.current = null;
-      }
-    }
-    // Cleanup function: always clear interval when dependencies change or component unmounts
-    return () => {
-      if (timerIntervalId.current) {
-        clearInterval(timerIntervalId.current);
-        timerIntervalId.current = null; 
-      }
-    };
   }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration]); // Removed duplicate showDesktopNotification
 
   // Effect for Idle Time Calculation
@@ -994,24 +947,29 @@ function App() {
     setIsPromptOpen(true); 
   }, [spirals, handleAddTask, setIsPromptOpen, setPromptConfig, setSpirals]); // Added missing dependencies
 
-  const handleMasterPlayPause = () => {
-    if (isTimerActive) { // If timer is supposed to be active (running or paused awaiting resume)
-      handlePauseTimer(); // This will set isTimerActive = false and clear interval
-    } else { // Timer is not supposed to be active (fully stopped or explicitly paused)
+  const handleMasterPlayPause = useCallback(() => {
+    if (isTimerActive) { // If timer is currently running
+      handlePauseTimer(); // Pause it
+    } else { // If timer is not currently running (stopped or paused)
       // Check if we can resume an existing task or break
       if (timeRemaining > 0 && ((currentTaskIndex !== -1 && tasks[currentTaskIndex] && !tasks[currentTaskIndex].completed && !isBreakTime) || isBreakTime)) {
-        handleResumeTimer(); // This will set isTimerActive = true
+        handleResumeTimer(); // Resume it
       } else {
         // Otherwise, try to start the first available (uncompleted) task
         const firstUncompletedTaskIndex = tasks.findIndex(t => !t.completed);
         if (firstUncompletedTaskIndex !== -1) {
-          startTimer(firstUncompletedTaskIndex); // startTimer sets isTimerActive = true
+          startTimer(firstUncompletedTaskIndex); // Start it
         } else {
           toast({title: "No Tasks", description: "Add a task or all tasks are complete.", variant:"default"});
         }
       }
     }
-  }; // Added missing dependencies implicitly handled by called functions
+  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, handlePauseTimer, handleResumeTimer, startTimer]); // Added missing dependencies
+
+  // Handle click on apple icon to toggle quote visibility
+  const handleAppleClick = () => {
+    setShowQuote(prevShowQuote => !prevShowQuote);
+  };
 
   // JSX will be in the next part
   return (
@@ -1051,25 +1009,26 @@ function App() {
             </h1>
 
             {/* Annoying Apple/Tomato and its Quote Bubble - Positioned alongside title */}
-        {motivationalQuote && (
-              <div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center space-x-2 p-1 z-20"> {/* Adjusted to be more flush left, reduced padding and space */}
-                {/* Image from logo192.png */}
-                <img 
-                  src={`${process.env.PUBLIC_URL}/assets/logo192.png`} 
-                  alt="Annoying Character" 
-                  className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" /* Smaller on small screens */
-                />
-                
-                {/* Quote Bubble */}
+            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center space-x-2 p-1 z-20"> {/* Adjusted to be more flush left, reduced padding and space */}
+              {/* Image from logo192.png */}
+              <img 
+                src={`${process.env.PUBLIC_URL}/assets/logo192.png`} 
+                alt="Annoying Character" 
+                className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 cursor-pointer" /* Added cursor-pointer */
+                onClick={handleAppleClick} // Added click handler
+              />
+              
+              {/* Quote Bubble - Conditionally rendered */}
+              {motivationalQuote && showQuote && (
                 <div className="relative bg-gray-800/80 backdrop-blur-md border border-gray-700/70 rounded-lg px-2 py-1 sm:px-3 sm:py-2 max-w-[140px] sm:max-w-[180px] md:max-w-[220px] shadow-xl"> {/* Smaller on small screens */}
                   <p className="text-gray-200 italic text-[10px] sm:text-xs md:text-sm leading-snug md:leading-relaxed">"{motivationalQuote}"</p>
                   {/* Speech bubble pointer (pointing left, adjusted for alignment) */}
                   <div 
                     className="absolute top-1/2 -left-2 transform -translate-y-1/2 w-4 h-4 bg-gray-800/80 border-b border-l border-gray-700/70 rotate-45"
                   />
+                </div>
+              )}
             </div>
-          </div>
-        )}
           </div>
         
           {/* Stats Grid - This is the existing stats display from your file */}
@@ -1132,9 +1091,9 @@ function App() {
         </div>
 
         {/* Main content area with side navigation */}
-        <div className="flex flex-col sm:flex-row flex-grow overflow-hidden w-full gap-2 sm:gap-3 lg:gap-5"> {/* Changed flex-row to flex-col on mobile */}
+        <div className="flex flex-col sm:flex-row flex-grow overflow-hidden w-full gap-2 sm:gap-2 lg:gap-3"> {/* Reduced gap from sm:gap-3 lg:gap-5 */}
           {/* Side Navigation - Enhanced with modern styling */}
-          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1.5 lg:gap-2.5 w-full sm:w-16 sm:w-24 lg:w-32 flex-shrink-0 justify-between"> 
+          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[6.5rem] flex-shrink-0 justify-between"> {/* Reduced padding and gaps */}
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = activeView === item.id;
@@ -1143,7 +1102,7 @@ function App() {
                   key={item.id}
                   variant={isActive ? 'default' : 'outline'}
                   onClick={() => setActiveView(item.id)}
-                  className={`h-14 sm:h-auto py-2 sm:py-3 px-2 sm:px-3 flex flex-col items-center justify-center text-xs sm:text-xs lg:text-sm rounded-lg sm:rounded-xl w-[18%] sm:w-auto
+                  className={`h-14 sm:h-auto py-2 sm:py-3 px-2 sm:px-3 flex flex-col items-center justify-center text-xs sm:text-xs lg:text-sm rounded-lg sm:rounded-xl w-[18%] sm:w-20 lg:w-[6rem]
                             ${
                               isActive
                                 ? `bg-gradient-to-br from-cyanAccent/20 to-brightAccent/10 shadow-lg shadow-cyanAccent/30 border border-cyanAccent/30` // Always use cyan/bright accent for active
@@ -1161,7 +1120,7 @@ function App() {
         </div>
 
           {/* Main view area */}
-        <main className="flex-grow overflow-auto h-full"> {/* Added h-full to take parent's height, overflow-auto handles scrolling */}
+        <main className="flex-grow overflow-auto h-full m-1 sm:m-0"> {/* Added mt-4 for spacing when nav is at top */}
           {/* Content will be conditionally rendered here based on activeView */}
           {activeView === 'focus' && (
               <div 
@@ -1169,7 +1128,7 @@ function App() {
                 ref={focusCardRef} // Attach the ref here
               > 
                 {/* Current Task Header - normal position by default, moved to top left on small heights via CSS */}
-                <div className="task-header-wrapper text-center pt-1 sm:pt-1 mb-3 sm:mb-4 min-w-[10R0px]"> {/* Increased default pt and mb */}
+                <div className="task-header-wrapper text-center mt-4 sm:mt-0 pt-1 sm:pt-1 mb-3 sm:mb-4 min-w-[10R0px]"> {/* Increased default pt and mb, Added mt-4 sm:mt-0 */}
                   <div className="inline-flex items-center gap-2 sm:gap-2 bg-gray-900/70 backdrop-blur-sm rounded-xl px-3 py-2 sm:px-3 sm:py-2 text-sm sm:text-base task-header"> {/* Increased default padding, gap, and text size */}
                     <div className={`w-2 h-2 sm:w-2 sm:h-2 rounded-full ${isTimerActive && !isBreakTime ? 'bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse' : 'bg-gray-600'}`}></div> {/* Increased default dot size */}
                     <div className="task-header-content">
@@ -1245,16 +1204,21 @@ function App() {
                           BREAK IN PROGRESS
                         </div>
                       )}
+                      {!isTimerActive && timeRemaining > 0 && currentTaskIndex !== -1 && !isBreakTime && (
+                         <div className="mt-1 text-xs sm:text-sm text-yellow-500 uppercase tracking-widest">
+                           PAUSED
+                         </div>
+                      )}
                     </div>
                   </div>
                 </div>
                 
                 {/* Control Buttons */}
-                <div className="flex justify-center gap-2 sm:gap-2 mt-4 pb-2 sm:pb-2"> {/* Increased default pb */}
+                <div className="flex justify-center gap-2 sm:gap-4 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2"> {/* Increased default pb, Added mb-4 sm:mb-0, Increased sm:gap */}
                   <button
                     onClick={handleMasterPlayPause}
-                    disabled={isTimerActive || (!isTimerActive && (tasks.findIndex(t => !t.completed) === -1 || (currentTaskIndex !== -1 && timeRemaining === 0 && !isBreakTime)))} // Disable if active, or if not active and (no uncompleted tasks OR (current task timer is 0 and not a break))
-                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-4 py-2 sm:px-4 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    disabled={!isTimerActive && (timeRemaining === 0 || currentTaskIndex === -1 || (tasks[currentTaskIndex] && tasks[currentTaskIndex].completed) || isBreakTime)} // Disabled if timer is NOT active AND (time is 0 OR no current task OR current task completed OR is break time)
+                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
@@ -1273,7 +1237,7 @@ function App() {
                       }
                     }}
                     disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 sm:px-4 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
@@ -1285,7 +1249,7 @@ function App() {
                   <button 
                     onClick={handleExtendTimer}
                     disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-3 py-2 sm:px-3 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
@@ -1445,6 +1409,7 @@ function App() {
                       isTimerActive={isTimerActive} 
                       isBreakTime={isBreakTime}
                       timeRemaining={timeRemaining}
+                      onMarkTaskDone={handleTaskDone} // Added this line
                   />
                     </div>
                   </UICardContent>

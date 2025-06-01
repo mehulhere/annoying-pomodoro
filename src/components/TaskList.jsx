@@ -2,7 +2,7 @@ import React from 'react';
 import TaskItem from './TaskItem';
 import { ListX } from 'lucide-react';
 
-function TaskList({ tasks, onRemoveTask, onStartTask, currentTaskIndex, activeTaskOriginalId, isTimerActive, isBreakTime, timeRemaining }) {
+function TaskList({ tasks, onRemoveTask, onStartTask, currentTaskIndex, activeTaskOriginalId, isTimerActive, isBreakTime, timeRemaining, onMarkTaskDone }) {
     if (!tasks || tasks.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full py-6 px-3">
@@ -28,6 +28,7 @@ function TaskList({ tasks, onRemoveTask, onStartTask, currentTaskIndex, activeTa
                     isTimerActive={isTimerActive}
                     isBreakTime={isBreakTime}
                     timeRemaining={timeRemaining}
+                    onMarkTaskDone={onMarkTaskDone}
                 />
             ))}
         </ul>

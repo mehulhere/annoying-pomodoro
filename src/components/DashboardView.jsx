@@ -7,6 +7,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Download, Upload, Calendar, Clock, Activity, TrendingUp } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const DashboardView = () => {
     const [statsHistory, setStatsHistory] = useState([]);
@@ -126,58 +127,37 @@ const DashboardView = () => {
     return (
         <div className="p-4">
             <Card className="mb-4">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <CardTitle>Productivity Dashboard</CardTitle>
-                    <div className="flex space-x-2">
-                        <Button
-                            variant={timeRange === 7 ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setTimeRange(7)}
-                        >
-                            7 Days
-                        </Button>
-                        <Button
-                            variant={timeRange === 14 ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setTimeRange(14)}
-                        >
-                            14 Days
-                        </Button>
-                        <Button
-                            variant={timeRange === 30 ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setTimeRange(30)}
-                        >
-                            30 Days
-                        </Button>
+
+                    <div className="flex items-center space-x-2 flex-wrap justify-center">
+                        <Select onValueChange={(value) => setTimeRange(parseInt(value, 10))} value={timeRange.toString()}>
+                            <SelectTrigger className="w-[100px]">
+                                <SelectValue placeholder="Select Range" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="7">7 Days</SelectItem>
+                                <SelectItem value="14">14 Days</SelectItem>
+                                <SelectItem value="30">30 Days</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-4 flex justify-between items-center">
-                        <div className="flex space-x-2">
-                            <Button
-                                variant={chartType === 'bar' ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setChartType('bar')}
-                            >
-                                Bar
-                            </Button>
-                            <Button
-                                variant={chartType === 'line' ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setChartType('line')}
-                            >
-                                Line
-                            </Button>
-                            <Button
-                                variant={chartType === 'area' ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setChartType('area')}
-                            >
-                                Area
-                            </Button>
+                    <div className="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="flex space-x-2 flex-wrap justify-center">
+                            <Select onValueChange={(value) => setChartType(value)} value={chartType}>
+                                <SelectTrigger className="w-[100px]">
+                                    <SelectValue placeholder="Select Chart" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="bar">Bar</SelectItem>
+                                    <SelectItem value="line">Line</SelectItem>
+                                    <SelectItem value="area">Area</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 flex-wrap justify-center">
                             <Button onClick={handleExport} size="sm" variant="outline" className="flex items-center">
                                 <Download className="w-4 h-4 mr-2" />
                                 Export
@@ -189,7 +169,7 @@ const DashboardView = () => {
                         </div>
                     </div>
 
-                    <div className="h-80 w-full">
+                    <div className="h-40 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             {chartType === 'bar' && (
                                 <BarChart data={statsHistory}>
