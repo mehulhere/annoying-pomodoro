@@ -9,7 +9,7 @@ import confetti from 'canvas-confetti';
 import { PromptDialog } from './components/ui/PromptDialog';
 import SpiralForm from './components/SpiralForm';
 import SpiralList from './components/SpiralList';
-import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit } from 'lucide-react';
+import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit, AlertTriangle, Globe } from 'lucide-react';
 // Spirals components will be added later
 
 // Different quote categories
@@ -97,11 +97,12 @@ function App() {
   const quoteIntervalId = useRef(null);
 
   // Settings state
-  const [quoteType, setQuoteType] = useState("nagging"); // Default quote type
+  const [quoteType, setQuoteType] = useState("abusive"); // Default quote type
   const [soundEnabled, setSoundEnabled] = useState(true); // Default sound setting
   const [theme, setTheme] = useState("dark"); // Default theme setting
   const [breakDuration, setBreakDuration] = useState(5); // Default break duration in minutes
   const [allowExtendBreak, setAllowExtendBreak] = useState(true); // Default setting for extending breaks
+  const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata'); // Default timezone
 
   // State for PromptDialog
   const [isPromptOpen, setIsPromptOpen] = useState(false);
@@ -127,12 +128,14 @@ function App() {
     const savedTheme = localStorage.getItem('theme');
     const savedBreakDuration = localStorage.getItem('breakDuration');
     const savedAllowExtendBreak = localStorage.getItem('allowExtendBreak');
+    const savedSelectedTimezone = localStorage.getItem('selectedTimezone');
     
     if (savedQuoteType) setQuoteType(savedQuoteType);
     if (savedSoundEnabled !== null) setSoundEnabled(savedSoundEnabled === 'true');
     if (savedTheme) setTheme(savedTheme);
     if (savedBreakDuration) setBreakDuration(parseInt(savedBreakDuration, 10));
     if (savedAllowExtendBreak !== null) setAllowExtendBreak(savedAllowExtendBreak === 'true');
+    if (savedSelectedTimezone) setSelectedTimezone(savedSelectedTimezone);
   }, []);
 
   // Save settings to localStorage whenever they change
@@ -142,7 +145,8 @@ function App() {
     localStorage.setItem('theme', theme);
     localStorage.setItem('breakDuration', breakDuration.toString());
     localStorage.setItem('allowExtendBreak', allowExtendBreak.toString());
-  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak]);
+    localStorage.setItem('selectedTimezone', selectedTimezone);
+  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, selectedTimezone]);
 
   // Apply theme class to body when it changes
   useEffect(() => {
@@ -155,26 +159,57 @@ function App() {
 
   // Initialize motivational quote, sound, and notification permissions
   useEffect(() => {
-    const getRandomQuote = () => {
-      const quotes = quoteCategories[quoteType];
-      return quotes[Math.floor(Math.random() * quotes.length)];
-    };
-    
-    setMotivationalQuote(getRandomQuote());
-    notificationSound.current = new Audio(`${process.env.PUBLIC_URL}/assets/notification.mp3`);
+    // Sound initialization (runs once)
+    notificationSound.current = new Audio();
+    notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/notification.mp3`;
 
+    // Notification permission request (runs once)
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission().then(permission => {
         if (permission === "granted") console.log("Desktop notification permission granted.");
       });
     }
+  }, []); // Empty dependency array: runs only on mount and unmount
+
+  // Motivational quote initialization and updates (runs when quoteType changes)
+  useEffect(() => {
+    const getRandomQuote = () => {
+      const quotes = quoteCategories[quoteType];
+      return quotes[Math.floor(Math.random() * quotes.length)];
+    };
+    setMotivationalQuote(getRandomQuote());
   }, [quoteType]);
 
   const playNotificationSound = useCallback(() => {
-    if (soundEnabled) {
-    notificationSound.current?.play().catch(error => console.error("Error playing sound:", error));
+    if (soundEnabled && notificationSound.current) {
+      // Ensure src is set (it should be from the initial useEffect, but as a fallback)
+      if (!notificationSound.current.src) {
+        notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/notification.mp3`;
+      }
+      notificationSound.current.currentTime = 0; // Reset sound to start
+      notificationSound.current.play()
+        .then(() => {
+          // console.log("Notification sound played successfully."); // Optional: for debugging
+        })
+        .catch(error => {
+          console.error("Error playing sound:", error);
+          if (error.name === 'NotSupportedError') {
+            console.error(`NotSupportedError: Please ensure the audio file at "${notificationSound.current.src}" exists in the public/assets/ folder, is a valid audio format (e.g., MP3), and that the browser can access it.`);
+            toast({
+              title: "Sound Playback Error",
+              description: "Could not play notification sound. Check file path and format.",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "Sound Error",
+              description: "An issue occurred while trying to play the sound.",
+              variant: "destructive"
+            });
+          }
+        });
     }
-  }, [soundEnabled]);
+  }, [soundEnabled]); // Removed process.env.PUBLIC_URL from deps as it's constant
 
   const showDesktopNotification = useCallback((title, body) => {
     if (Notification.permission === "granted") new Notification(title, { body });
@@ -553,42 +588,91 @@ function App() {
   };
 
   const calculateDailyStats = useCallback(() => {
+    console.log("[Debug] calculateDailyStats called"); // General log to confirm function call
+
     const totalPlannedDuration = tasks.reduce((acc, task) => acc + task.estimatedDuration, 0); // in minutes
 
-    let totalFocusSeconds = tasks.reduce((acc, task) => {
+    let accumulatedFocusTimeSeconds = tasks.reduce((acc, task) => {
       if (task.completed) {
+        return acc + (task.timeSpentSeconds || 0);
+      }
+      if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
         return acc + (task.timeSpentSeconds || 0);
       }
       return acc;
     }, 0);
-
-    if (currentTaskIndex !== -1 && tasks[currentTaskIndex] && !tasks[currentTaskIndex].completed && !isBreakTime) {
-      // Add time spent on the current, non-completed, active task
-      totalFocusSeconds += (tasks[currentTaskIndex].timeSpentSeconds || 0);
-    }
     
-    // Calculate remaining estimated time for tasks not yet started or completed
-    // This logic might need to be separate if "Focus Time" strictly means time ALREADY spent.
-    // For now, let's keep a separate calculation for estimated remaining time if needed elsewhere,
-    // or decide if "Focus Time" in header should be a different metric.
+    const remainingUncompletedTaskMinutes = tasks
+      .filter(task => !task.completed)
+      .reduce((acc, task) => {
+          if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !isBreakTime) {
+            return acc + Math.max(0, Math.ceil(timeRemaining / 60));
+          }
+          return acc + task.estimatedDuration;
+      }, 0);
 
-    // The original remainingTaskTime logic:
-    let activeTaskRemainingSeconds = 0;
-    if (currentTaskIndex !== -1 && tasks[currentTaskIndex] && !tasks[currentTaskIndex].completed && !isBreakTime) {
-      activeTaskRemainingSeconds = timeRemaining > 0 ? timeRemaining : 0;
+    const now = new Date();
+    let timeLeftTodayMinutes = 0;
+    try {
+      const currentHourInTZ = parseInt(now.toLocaleString('en-GB', { timeZone: selectedTimezone, hour: '2-digit', hour12: false }));
+      const currentMinuteInTZ = parseInt(now.toLocaleString('en-GB', { timeZone: selectedTimezone, minute: '2-digit' }));
+      const minutesPassedTodayInTZ = currentHourInTZ * 60 + currentMinuteInTZ;
+      const eodTargetMinutesInTZ = 24 * 60; // Changed from 18*60 (6 PM) to 24*60 (Midnight)
+      
+      if (minutesPassedTodayInTZ < eodTargetMinutesInTZ) {
+        timeLeftTodayMinutes = eodTargetMinutesInTZ - minutesPassedTodayInTZ;
+      } else {
+        timeLeftTodayMinutes = 0;
+      }
+    } catch (error) {
+      console.error("Error calculating time left in timezone:", error);
+      const localEOD = new Date();
+      localEOD.setHours(18,0,0,0);
+      const localMsLeft = localEOD.getTime() - now.getTime();
+      timeLeftTodayMinutes = Math.max(0, Math.floor(localMsLeft / (1000 * 60)));
     }
-    const unstartedTasksDurationSeconds = tasks
-        .filter(task => !task.started && !task.completed)
-        .reduce((acc, task) => acc + (task.estimatedDuration * 60), 0);
-    const estimatedRemainingSecondsOverall = activeTaskRemainingSeconds + unstartedTasksDurationSeconds;
+
+    let probNotFinishingPercentage = 0;
+
+    if (remainingUncompletedTaskMinutes === 0) {
+      probNotFinishingPercentage = 0;
+      console.log("[Debug] P(Not Finishing): 0% (No remaining uncompleted tasks)");
+    } else if (timeLeftTodayMinutes <= 0) {
+      probNotFinishingPercentage = 100;
+      console.log("[Debug] P(Not Finishing): 100% (Time left today is 0 or less)");
+    } else {
+      console.log("[Debug] P(Not Finishing): Calculating detailed probability...");
+      const P_base_workload = Math.min(1, remainingUncompletedTaskMinutes / timeLeftTodayMinutes);
+      
+      const totalSessionTimeSeconds = accumulatedFocusTimeSeconds + displayedIdleTime;
+      let inefficiency_penalty_multiplier = 1; // Default to no penalty
+      if (totalSessionTimeSeconds > 0) {
+        const efficiency_metric = accumulatedFocusTimeSeconds / totalSessionTimeSeconds;
+        inefficiency_penalty_multiplier = 1 + (1 - efficiency_metric); // Ranges [1, 2]
+      }
+
+      const raw_probability = P_base_workload * inefficiency_penalty_multiplier;
+      probNotFinishingPercentage = Math.min(100, Math.round(raw_probability * 100));
+
+      // Console logging for debugging the P(Not Finishing) formula
+      console.log("  Remaining Uncompleted Task Minutes:", remainingUncompletedTaskMinutes);
+      console.log("  Time Left Today Minutes (in TZ):", timeLeftTodayMinutes);
+      console.log("  P_base_workload (before penalty):", P_base_workload.toFixed(3));
+      console.log("  Accumulated Focus Seconds:", accumulatedFocusTimeSeconds);
+      console.log("  Displayed Idle Seconds:", displayedIdleTime);
+      console.log("  Total Session Seconds (Focus + Idle):", totalSessionTimeSeconds);
+      console.log("  Inefficiency Penalty Multiplier:", inefficiency_penalty_multiplier.toFixed(3));
+      console.log("  Raw Probability (P_base * Penalty Multiplier):", raw_probability.toFixed(3));
+      console.log("  Final P(Not Finishing)% (rounded & capped):", probNotFinishingPercentage);
+    }
 
     return {
-      totalPlannedTime: totalPlannedDuration, // Total estimated minutes for all tasks
-      accumulatedFocusTimeSeconds: totalFocusSeconds, // Actual accumulated focus time in seconds
-      estimatedRemainingTaskTimeMinutes: Math.ceil(estimatedRemainingSecondsOverall / 60), // Original remaining time logic
-      probNotFinishing: 0, // Placeholder
+      totalPlannedTime: totalPlannedDuration,
+      accumulatedFocusTimeSeconds: accumulatedFocusTimeSeconds, 
+      estimatedRemainingTaskTimeMinutes: remainingUncompletedTaskMinutes,
+      probNotFinishing: probNotFinishingPercentage,
     };
-  }, [tasks, currentTaskIndex, timeRemaining, isBreakTime]);
+  }, [tasks, currentTaskIndex, timeRemaining, isBreakTime, selectedTimezone, displayedIdleTime]);
 
   const dailyStats = calculateDailyStats();
   const activeTaskObject = currentTaskIndex !== -1 && tasks[currentTaskIndex] ? tasks[currentTaskIndex] : null;
@@ -676,8 +760,8 @@ function App() {
           </div>
         )}
         
-        {/* Enhanced Stats Display - adjusted for 4 items */}
-        <div className="mt-2 pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-4 justify-around items-center gap-3 sm:gap-4">
+        {/* Enhanced Stats Display - adjusted for 5 items */}
+        <div className="mt-2 pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-3 sm:gap-4">
           <div className="flex flex-col items-center group">
             <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
               <Award className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
@@ -705,6 +789,13 @@ function App() {
               Idle Time
             </div>
             <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{formatDurationToHoursMinutes(displayedIdleTime)}</span>
+          </div>
+          <div className="flex flex-col items-center group">
+            <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
+              <AlertTriangle className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              P(Not Finish)
+            </div>
+            <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{dailyStats.probNotFinishing}%</span>
           </div>
         </div>
       </header>
@@ -1140,6 +1231,34 @@ function App() {
                       Annoying Pomodoro v0.1.0<br />
                       An annoyingly effective time management app
                     </div>
+                  </div>
+
+                  {/* Timezone Setting */}
+                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center">
+                        <Globe className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
+                        <span className="font-medium text-xs md:text-sm">Timezone</span>
+                      </div>
+                      <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
+                        {selectedTimezone.replace('_', ' ')}
+                      </div>
+                    </div>
+                    <select
+                      value={selectedTimezone}
+                      onChange={(e) => setSelectedTimezone(e.target.value)}
+                      className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent"
+                    >
+                      <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
+                      <option value="America/New_York">America/New York (ET)</option>
+                      <option value="America/Chicago">America/Chicago (CT)</option>
+                      <option value="America/Denver">America/Denver (MT)</option>
+                      <option value="America/Los_Angeles">America/Los Angeles (PT)</option>
+                      <option value="Europe/London">Europe/London (GMT/BST)</option>
+                      <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+                      <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+                      <option value="UTC">UTC</option>
+                    </select>
                   </div>
                 </div>
               </CardContent>
