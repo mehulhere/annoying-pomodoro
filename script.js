@@ -44,7 +44,7 @@ const motivationalQuotes = [
 let quoteInterval = null;
 
 // Notification Sound
-const notificationSound = new Audio('assets/AnnoyingannoyingNotification.mp3');
+const notificationSound = new Audio('assets/annoyingNotification.mp3');
 
 // Request Notification Permission on Load
 if (Notification.permission !== 'granted' &&

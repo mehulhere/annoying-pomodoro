@@ -111,7 +111,7 @@ function App() {
   const [sessionStartTime, setSessionStartTime] = useState(null); // Timestamp when the first task of the session started
   const [displayedIdleTime, setDisplayedIdleTime] = useState(0); // Idle time in seconds
   const [isSessionEndTimeExpanded, setIsSessionEndTimeExpanded] = useState(false);
-  
+
   // State for PromptDialog
   const [isPromptOpen, setIsPromptOpen] = useState(false);
   const [promptConfig, setPromptConfig] = useState({
@@ -274,7 +274,7 @@ function App() {
 
   // Save settings and data to localStorage whenever they change
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded) return; 
 
     localStorage.setItem('quoteType', quoteType);
     localStorage.setItem('soundEnabled', soundEnabled.toString());
@@ -330,7 +330,7 @@ function App() {
   useEffect(() => {
     // Sound initialization (runs once)
     notificationSound.current = new Audio();
-    notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/AnnoyingNotification.mp3`;
+    notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/annoyingNotification.mp3`;
 
     // Notification permission request (runs once)
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -350,10 +350,11 @@ function App() {
   }, [quoteType]);
 
   const playNotificationSound = useCallback(() => {
+    console.log("playNotificationSound");
     if (soundEnabled && notificationSound.current) {
       // Ensure src is set (it should be from the initial useEffect, but as a fallback)
       if (!notificationSound.current.src) {
-        notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/AnnoyingNotification.mp3`;
+        notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/annoyingNotification.mp3`;
       }
       notificationSound.current.currentTime = 0; // Reset sound to start
       notificationSound.current.play()
@@ -379,6 +380,13 @@ function App() {
         });
     }
   }, [soundEnabled]); // Removed process.env.PUBLIC_URL from deps as it's constant
+
+  const pauseNotificationSound = useCallback(() => {
+    if (notificationSound.current && !notificationSound.current.paused) {
+      notificationSound.current.pause();
+      notificationSound.current.currentTime = 0; // Reset to beginning
+    }
+  }, []);
 
   const showDesktopNotification = useCallback((title, body) => {
     if (Notification.permission === "granted") new Notification(title, { body });
@@ -474,6 +482,8 @@ function App() {
       return;
     }
     
+    pauseNotificationSound(); // Stop any ongoing notification sound
+
     // Guard 3: Handle active break
     if (isBreakTime) { 
       if (timerIntervalId.current) clearInterval(timerIntervalId.current);
@@ -533,6 +543,8 @@ function App() {
       return;
     }
 
+    pauseNotificationSound(); // Stop any ongoing notification sound
+
     const task = tasks[currentTaskIndex];
     let pointsEarnedThisTask = 0;
     
@@ -588,7 +600,6 @@ function App() {
     }
     setIsTimerActive(false); 
     
-    playNotificationSound();
     showDesktopNotification("Task Finished!", `"${task.name}" is complete.`);
     toast({ title: "Task Finished!", description: `"${task.name}" complete. Points: +${pointsEarnedThisTask}` });
     
@@ -597,8 +608,7 @@ function App() {
     setCurrentTaskIndex(-1); 
     setIsTimerActive(true); 
     toast({title: "Break Time!", description: `Taking a ${breakDuration} minute break.`});
-
-  }, [tasks, currentTaskIndex, playNotificationSound, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive, focusCardRef]); // Added missing dependencies
+  }, [tasks, currentTaskIndex, playNotificationSound, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive, focusCardRef]); // Dependencies unchanged
 
   const handleSkipBreak = useCallback(() => {
     if (isBreakTime && isTimerActive) {
@@ -606,6 +616,7 @@ function App() {
         clearInterval(timerIntervalId.current);
         timerIntervalId.current = null;
       }
+      pauseNotificationSound(); // Stop any ongoing notification sound
       setIsTimerActive(false);
       setIsBreakTime(false);
       setTimeRemaining(0);
@@ -622,6 +633,8 @@ function App() {
       toast({title: "No Timer Active", description: "Start a task or break to extend its time.", variant: "default"});
       return;
     }
+
+    pauseNotificationSound(); // Stop any ongoing notification sound
 
     // If it's a task, check if it's completed 
     // (This check is also in the button's disabled logic, but good for safety)
@@ -765,7 +778,7 @@ function App() {
       return () => clearInterval(intervalId);
     }
   }, [isTimerActive, sessionStartTime, calculateFocusTime, setDisplayedIdleTime]); // Added missing dependencies
-  
+
   // Formatting and Display Logic
   const timerDisplayColor = () => {
     if (isBreakTime) return 'text-emerald-400'; // Specific color for break time
@@ -1016,7 +1029,7 @@ function App() {
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-cyanAccent/10 blur-md rounded-full"></div>
-                <span className="relative z-10 text-cyanAccent font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-brightAccent px-3">{score}</span>
+                <span className="score-display relative z-10 text-cyanAccent font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-brightAccent px-3">{score}</span>
           </div>
             </div>
             
@@ -1100,9 +1113,9 @@ function App() {
           {/* Content will be conditionally rendered here based on activeView */}
           {activeView === 'focus' && (
               <div 
-                className="space-y-8 h-full flex flex-col bg-gradient-to-br from-dark-100/90 to-dark-200/90 shadow-md hover:shadow-lg transition-all duration-500 rounded-xl p-4 sm:p-6"
+                className="space-y-8 h-full flex flex-col bg-gradient-to-br from-dark-100/90 to-dark-200/90 shadow-md hover:shadow-lg transition-all duration-500 rounded-xl p-4 sm:p-6 relative"
                 ref={focusCardRef} // Attach the ref here
-              > {/* Removed ring border */}
+              > {/* Removed ring border, Added relative */}
                 {/* Current Task Header */}
                 <div className="text-center pt-2">
                   <div className="inline-flex items-center gap-3 bg-gray-900/50 backdrop-blur-sm rounded-2xl px-6 py-3">
@@ -1225,6 +1238,7 @@ function App() {
                 </div>
                   </button>
                 </div>
+                {/* Animated Points Display - Removed */}
               </div>
           )}
 
