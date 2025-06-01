@@ -1305,8 +1305,8 @@ function App() {
                           Yes
                         </button>
                         <button 
-                          className={`${!allowExtendBreak ? 'bg-dark-200/80 text-white' : 'bg-dark-200/30 text-subtleText opacity-60'} hover:bg-dark-300/80 transition-colors rounded-full px-2.5 py-1 text-[10px] md:text-xs`}
-                          onClick={() => setAllowExtendBreak(false)}
+                          className={`${!allowExtendBreak ? 'bg-dark-200/80 text-white' : 'bg-dark-200/30 text-subtleText opacity-60'} hover:bg-dark-300/80 transition-colors rounded-full p-1 md:p-1.5`}
+                          onClick={() => setSoundEnabled(false)}
                         >
                           No
                         </button>
@@ -1406,32 +1406,7 @@ function App() {
                   </div>
 
                   {/* Timezone Setting */}
-                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
-                        <span className="font-medium text-xs md:text-sm">Timezone</span>
-                      </div>
-                      <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
-                        {/* selectedTimezone.replace('_', ' ') */}
-                         Removed
-                      </div>
-                    </div>
-                    {/* select
-                      value={selectedTimezone}
-                      onChange={(e) => setSelectedTimezone(e.target.value)}\n                      className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent"
-                    >
-                      <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
-                      <option value="America/New_York">America/New York (ET)</option>
-                      <option value="America/Chicago">America/Chicago (CT)</option>
-                      <option value="America/Denver">America/Denver (MT)</option>
-                      <option value="America/Los_Angeles">America/Los Angeles (PT)</option>
-                      <option value="Europe/London">Europe/London (GMT/BST)</option>
-                      <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
-                      <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
-                      <option value="UTC">UTC</option>
-                    </select>*/}
-                  </div>
+                  {/* Removed Timezone Setting */}
                 </div>
               </CardContent>
             </Card>

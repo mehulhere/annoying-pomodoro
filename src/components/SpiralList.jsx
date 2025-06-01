@@ -5,7 +5,7 @@ import { Trash2, ArrowUpRight, Lightbulb } from 'lucide-react';
 function SpiralList({ spirals, onRemoveSpiral, onMoveSpiralToTasks }) {
     if (!spirals || spirals.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-8 px-4 mt-2">
+            <div className="flex flex-col items-center justify-center py-8 px-4 mt-2 h-full">
                 <div className="bg-dark-300/30 rounded-full p-4 mb-3">
                     <Lightbulb className="h-8 w-8 text-subtleText" />
                 </div>
