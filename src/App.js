@@ -150,6 +150,21 @@ function App() {
     return 'text-subtleText group-hover:text-subtleText/70';
   };
 
+  // Calculate total focus time from completed tasks - Wrapped in useCallback
+  // DEFINED HERE, INSIDE App and BEFORE its usage in other hooks/functions
+  const calculateFocusTime = useCallback(() => {
+    return tasks.reduce((total, task) => {
+      if (task.completed) {
+        return total + (task.timeSpentSeconds || 0);
+      } else if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
+        const now = Date.now();
+        const timeElapsedSinceStart = Math.floor((now - tasks[currentTaskIndex].timerStartTime) / 1000);
+        return total + (task.timeSpentSeconds || 0) + timeElapsedSinceStart;
+      }
+      return total + (task.timeSpentSeconds || 0);
+    }, 0);
+  }, [tasks, currentTaskIndex, isBreakTime]);
+
   // Load settings from localStorage on initial render
   useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
     const savedQuoteType = localStorage.getItem('quoteType');
@@ -200,7 +215,7 @@ function App() {
       // Save the previous day's stats before resetting
       const previousDayStats = {
         date: new Date(currentLastResetTs - 86400000).toISOString().split('T')[0], // Yesterday's date
-        focusTime: calculateFocusTime(),
+        focusTime: calculateFocusTime(), // Usage of calculateFocusTime
         idleTime: displayedIdleTime,
         tasksCompleted: tasks.filter(t => t.completed).length,
         score: score,
@@ -254,20 +269,21 @@ function App() {
     if (savedSpirals) { try { setSpirals(JSON.parse(savedSpirals)); } catch (e) { console.error("Error parsing spirals from localStorage", e); setSpirals([]); } } else { setSpirals([]); }
     
     setIsLoaded(true); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ESLint disabled due to complex, time-sensitive logic that uses state values from *before* potential reset
 
   // Save settings and data to localStorage whenever they change
   useEffect(() => {
-    if (!isLoaded) return; 
+    if (!isLoaded) return;
 
     localStorage.setItem('quoteType', quoteType);
     localStorage.setItem('soundEnabled', soundEnabled.toString());
     localStorage.setItem('theme', theme);
     localStorage.setItem('breakDuration', breakDuration.toString());
     localStorage.setItem('allowExtendBreak', allowExtendBreak.toString());
-    localStorage.setItem('dailyResetTime', dailyResetTime); // Save new setting
+    localStorage.setItem('dailyResetTime', dailyResetTime);
 
-    if (lastResetTimestamp !== null) { // Save new setting state
+    if (lastResetTimestamp !== null) {
       localStorage.setItem('lastResetTimestamp', lastResetTimestamp.toString());
     } else {
       localStorage.removeItem('lastResetTimestamp');
@@ -281,26 +297,25 @@ function App() {
     localStorage.setItem('isTimerActive', isTimerActive.toString());
     localStorage.setItem('isBreakTime', isBreakTime.toString());
     
-    // Save current day's stats to history for real-time dashboard updates
-    // Only save if we have tasks and a session has started
-    if (tasks.length > 0 && sessionStartTime !== null) {
+    // Destructure tasks for clarity, though not strictly necessary for the fix
+    const currentTasks = tasks;
+    const currentScore = score;
+    const currentDisplayedIdleTime = displayedIdleTime;
+
+    if (currentTasks.length > 0 && sessionStartTime !== null) {
       const today = new Date().toISOString().split('T')[0];
       const currentStats = {
         date: today,
         focusTime: calculateFocusTime(),
-        idleTime: displayedIdleTime,
-        tasksCompleted: tasks.filter(t => t.completed).length,
-        score: score,
-        totalTasks: tasks.length,
-        totalPlannedTime: tasks.reduce((total, task) => total + task.estimatedDuration, 0)
+        idleTime: currentDisplayedIdleTime, // use destructured
+        tasksCompleted: currentTasks.filter(t => t.completed).length, // use destructured
+        score: currentScore, // use destructured
+        totalTasks: currentTasks.length, // use destructured
+        totalPlannedTime: currentTasks.reduce((total, task) => total + task.estimatedDuration, 0)
       };
       statsHistory.saveDailyStats(currentStats);
     }
-  }, [ // Include all state variables used in the effect as dependencies
-    quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime,
-    tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime,
-    isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime // Added calculateFocusTime dependency
-  ]);
+  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime]);
 
   // Apply theme class to body when it changes
   useEffect(() => {
@@ -550,7 +565,7 @@ function App() {
       });
     } else {
        // Fallback to default origin if ref is not available
-      confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
     }
 
     // Use actualTimeSpent (which could be > estimated if they let timer run out and clicked done)
@@ -751,22 +766,6 @@ function App() {
     }
   }, [isTimerActive, sessionStartTime, calculateFocusTime, setDisplayedIdleTime]); // Added missing dependencies
   
-  // Calculate total focus time from completed tasks - Wrapped in useCallback
-  const calculateFocusTime = useCallback(() => {
-    return tasks.reduce((total, task) => {
-      if (task.completed) {
-        // For completed tasks, use the actual time spent
-        return total + (task.timeSpentSeconds || 0);
-      } else if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
-        // For the current active task, add the time spent so far plus the time since the timer started
-        const now = Date.now();
-        const timeElapsedSinceStart = Math.floor((now - tasks[currentTaskIndex].timerStartTime) / 1000);
-        return total + (task.timeSpentSeconds || 0) + timeElapsedSinceStart; // Added task.timeSpentSeconds
-      }
-      return total + (task.timeSpentSeconds || 0); // Added task.timeSpentSeconds fallback
-    }, 0);
-  }, [tasks, currentTaskIndex, isBreakTime]); // Added dependencies
-
   // Formatting and Display Logic
   const timerDisplayColor = () => {
     if (isBreakTime) return 'text-emerald-400'; // Specific color for break time
@@ -915,7 +914,7 @@ function App() {
       cancelText: "Cancel",
       placeholder: "e.g., 30",
       onConfirm: (durationText) => {
-        if (durationText === null) return;
+        if (durationText === null) return; 
         const duration = parseInt(durationText, 10);
 
         if (duration && duration > 0) {
