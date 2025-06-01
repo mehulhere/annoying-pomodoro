@@ -65,7 +65,7 @@ function App() {
   useEffect(() => {
     const getRandomQuote = () => motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
     setNaggingQuote(getRandomQuote());
-    notificationSound.current = new Audio('/assets/notification.mp3');
+    notificationSound.current = new Audio('/assets/AnnoyingannoyingNotification.mp3');
 
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission().then(permission => {

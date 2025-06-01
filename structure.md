@@ -12,19 +12,20 @@ This document outlines the main files and directories in the Annoying Pomodoro R
 -   **`public/`**: Contains static assets that are publicly accessible.
     -   **`index.html`**: The main HTML page that serves as the entry point for the React application.
     -   **`favicon.ico`**: The icon displayed in the browser tab.
-    -   **`assets/`**: Directory for other static assets like images or sound files (e.g., `notification.mp3`).
+    -   **`assets/`**: Directory for other static assets like images or sound files (e.g., `annoyingNotification.mp3`, `logo192.png`).
 -   **`src/`**: Contains the source code of the React application.
     -   **`index.js`**: The JavaScript entry point. It renders the main `App` component into the DOM.
-    -   **`App.js`**: The main application component. It manages the overall state, routing (if any, though current structure is single-view focused with view switching), and layout. It orchestrates interactions between different parts of the application like the timer, task management, and settings.
-    -   **`index.css`**: Global CSS styles and Tailwind CSS base/component/utility layers. Contains global styling, theme variables (light/dark), and utility CSS classes.
+    -   **`App.js`**: The main application component. It manages the overall state, layout, view switching, timer logic, task/spiral operations, daily stats calculation, settings persistence, historical stats management, notifications, and motivational quotes. It also defines the `navItems` array and the `getIconClass` helper function for navigation styling.
+    -   **`index.css`**: Global CSS styles and Tailwind CSS base/component/utility layers. Contains global styling, theme variables (light/dark), custom scrollbar styles (`.custom-scrollbar`), and utility CSS classes, including those for the main heading gradients.
     -   **`components/`**: Directory for reusable React components.
         -   **`TaskForm.jsx`**: Component for the form used to add new tasks (description and duration).
-        -   **`TaskList.jsx`**: Component to display the list of tasks.
+        -   **`TaskList.jsx`**: Component to display the list of tasks. Handles its own internal scrolling with a max height and custom scrollbar styling.
         -   **`TaskItem.jsx`**: Component representing a single task item in the list.
         -   **`SpiralForm.jsx`**: Component for the input form to add new "spiral" ideas/thoughts.
         -   **`SpiralList.jsx`**: Component to display the list of spirals.
         -   **`SpiralItem.jsx`**: Component representing a single spiral item.
-        -   **`ui/`**: Sub-directory for general-purpose UI components (often "shadcn/ui" inspired or similar).
+        -   **`DashboardView.jsx`**: Component for displaying historical statistics and charts.
+        -   **`ui/`**: Sub-directory for general-purpose UI components ("shadcn/ui" inspired or similar).
             -   **`Button.jsx`**: A reusable button component with variants.
             -   **`Card.jsx`**: Components for card-like UI elements (`Card`, `CardHeader`, `CardTitle`, `CardContent`, etc.).
             -   **`Input.jsx`**: A reusable input field component.
@@ -35,20 +36,33 @@ This document outlines the main files and directories in the Annoying Pomodoro R
         -   **`use-toast.js`**: Custom hook for managing and displaying toast notifications.
     -   **`lib/`**: Directory for utility functions or libraries.
         -   **`utils.js`**: General utility functions, often includes `cn` for conditional class names (from `clsx` and `tailwind-merge`).
+        -   **`statsHistory.js`**: Utility functions for saving, retrieving, and managing historical daily statistics.
 
 ## Build Process
 
 -   Running `npm run build` (typically using `react-scripts build`) creates a `build/` directory. This directory contains the optimized, static assets (HTML, CSS, JavaScript bundles, images) ready for deployment.
 -   The `deploy.sh` script uses the contents of this `build/` directory for deploying to GitHub Pages.
 
-## Key Features Handled in `App.js`
+## Key Features Handled in `App.js` (Updated based on recent changes)
 
--   **State Management**: Manages tasks, spirals, timer state (active, break, time remaining), user score, settings (theme, sound, quote type, break duration), and current view.
--   **Timer Logic**: Core countdown logic, starting/pausing/resuming tasks and breaks, extending timers.
--   **Task Operations**: Adding, removing, completing tasks.
+-   **State Management**: Manages tasks, spirals, timer state (active, break, time remaining), user score, settings (theme, sound, quote type, break duration, daily reset time, break extension allowance), and current view.
+-   **Timer Logic**: Core countdown logic, starting/pausing/resuming tasks and breaks, extending timers. Includes logic for timer color changes based on time remaining and state (idle, active, break, warning thresholds).
+-   **Task Operations**: Adding, removing, completing tasks. Task list is now sorted to show uncompleted tasks first.
 -   **Spiral Operations**: Adding, removing spirals, moving spirals to tasks.
--   **Daily Stats Calculation**: Computes total planned time, focus time, idle time, and probability of not finishing tasks.
--   **Settings Persistence**: Saves and loads user settings from `localStorage`.
--   **Notifications**: Handles sound and desktop notifications.
+-   **Daily Stats Calculation**: Computes total planned time, focus time, idle time, and probability of not finishing tasks for the current day, including the custom session end time feature.
+-   **Settings Persistence**: Saves and loads user settings (including daily reset time) from `localStorage`.
+-   **Historical Stats Management**: Handles saving daily statistics and provides data for the dashboard view.
+-   **Notifications**: Handles sound (using `annoyingNotification.mp3`) and desktop notifications.
 -   **Motivational Quotes**: Displays quotes based on selected type.
--   **View Switching**: Manages which main content area is visible (Focus, Plan, Spirals, Settings). 
+-   **View Switching & Navigation**: Manages which main content area is visible. The sidebar navigation uses the `navItems` array and `getIconClass` helper for styling, with distinct color-coded icons when active and a consistent active background.
+-   **Confetti**: Triggers a confetti burst centered on the Focus view card when a task is completed.
+-   **Header Styling**: Implements the split-gradient/solid color styling for the "Annoying Pomodoro" title and positions the annoying character and quote.
+
+## Additional Notes
+
+-   **Custom Scrollbar Styles**: The `.custom-scrollbar` class in the `index.css` file is used to apply custom styles to scrollbars.
+-   **Heading Gradients**: The main heading gradients are implemented using utility CSS classes in the `index.css` file.
+-   **Task List Handling**: The `TaskList.jsx` component handles its own internal scrolling with a max height and custom scrollbar styling.
+-   **Nav Items and Get Icon Class**: The `App.js` file defines the `navItems` array and the `getIconClass` helper function for navigation styling.
+-   **Confetti**: The confetti burst is triggered when a task is completed.
+-   **Header Styling**: The split-gradient/solid color styling for the "Annoying Pomodoro" title and positions the annoying character and quote are implemented in the `index.css` file. 

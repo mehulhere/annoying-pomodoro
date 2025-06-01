@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from './components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from './components/ui/Card';
-import TaskForm from './components/TaskForm';
-import TaskList from './components/TaskList';
+import { Button as UIButton } from './components/ui/Button'; // Renamed to avoid conflict
+import { Card as UICard, CardHeader as UICardHeader, CardTitle as UICardTitle, CardContent as UICardContent } from './components/ui/Card'; // Renamed
+import TaskFormC from './components/TaskForm'; // Renamed
+import TaskListC from './components/TaskList'; // Renamed
 import { Toaster } from './components/Toaster';
 import { toast } from './hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { PromptDialog } from './components/ui/PromptDialog';
-import SpiralForm from './components/SpiralForm';
-import SpiralList from './components/SpiralList';
-import DashboardView from './components/DashboardView';
+import SpiralFormC from './components/SpiralForm'; // Renamed
+import SpiralListC from './components/SpiralList'; // Renamed
+import DashboardViewC from './components/DashboardView'; // Renamed
 import * as statsHistory from './lib/statsHistory';
-import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit, AlertTriangle, Globe, Clock, BarChart } from 'lucide-react';
-// Spirals components will be added later
+import { Timer, CheckCircle, Award, Coffee, AlertTriangle, Play, Moon, Sun, Volume2, VolumeX, BrainCircuit, Clock, Plus, Pause, ChevronDown, ChevronRight, ListChecks, SlidersHorizontal, PieChart, AlertCircle } from 'lucide-react'; // Removed unused icons
 
 // Different quote categories
 const quoteCategories = {
@@ -62,8 +61,6 @@ const quoteCategories = {
   ]
 };
 
-const POINTS_PER_TASK = 10;
-const MAX_TIME_SAVED_BONUS = 10; // Max bonus points for saving time, scaled by percentage
 const POINTS_DEDUCTION_FOR_EXTENSION = 2; // Penalty for extending a task
 
 // Moved helper functions before their usage in useCallback hooks
@@ -88,6 +85,8 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [spirals, setSpirals] = useState([]); // For spirals feature
   
+  const focusCardRef = useRef(null); // Ref for the Focus view card
+  
   const [currentTaskIndex, setCurrentTaskIndex] = useState(-1); // Index of the active task in the tasks array
   const [timeRemaining, setTimeRemaining] = useState(0); // In seconds
   const [isTimerActive, setIsTimerActive] = useState(false); // Is the countdown interval running?
@@ -104,7 +103,6 @@ function App() {
   const [theme, setTheme] = useState("dark"); // Default theme setting
   const [breakDuration, setBreakDuration] = useState(5); // Default break duration in minutes
   const [allowExtendBreak, setAllowExtendBreak] = useState(true); // Default setting for extending breaks
-  const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata'); // Default timezone
   const [dailyResetTime, setDailyResetTime] = useState("00:00"); // Default daily reset time
   const [lastResetTimestamp, setLastResetTimestamp] = useState(null); // When the last daily reset occurred (timestamp)
   const [customFinishTime, setCustomFinishTime] = useState(null); // Custom finish time for today
@@ -112,6 +110,7 @@ function App() {
   const [activeView, setActiveView] = useState('focus'); // 'focus', 'plan', 'spirals', 'settings', 'dashboard'
   const [sessionStartTime, setSessionStartTime] = useState(null); // Timestamp when the first task of the session started
   const [displayedIdleTime, setDisplayedIdleTime] = useState(0); // Idle time in seconds
+  const [isSessionEndTimeExpanded, setIsSessionEndTimeExpanded] = useState(false);
   
   // State for PromptDialog
   const [isPromptOpen, setIsPromptOpen] = useState(false);
@@ -126,8 +125,33 @@ function App() {
     placeholder: '',
   });
 
+  const navItems = [
+    { id: 'focus', label: 'Focus', icon: Timer, color: 'violet-500', activeColor: 'violet-500' },
+    { id: 'plan', label: 'Plan', icon: ListChecks, color: 'emerald-500', activeColor: 'emerald-500' },
+    { id: 'spirals', label: 'Spirals', icon: BrainCircuit, color: 'sky-400', activeColor: 'indigo-500' },
+    { id: 'settings', label: 'Settings', icon: SlidersHorizontal, color: 'slate-400', activeColor: 'gray-400' },
+    { id: 'dashboard', label: 'Stats', icon: PieChart, color: 'amber-500', activeColor: 'yellow-500' }
+  ];
+
+  const getIconClass = (isActive, itemColor) => {
+    if (isActive) {
+      if (itemColor === 'violet-500') return 'text-violet-500';
+      if (itemColor === 'sky-400') return 'text-sky-400';
+      if (itemColor === 'orange-500') return 'text-orange-500';
+      if (itemColor === 'cyanAccent') return 'text-cyanAccent';
+      if (itemColor === 'emerald-500') return 'text-emerald-500';
+      if (itemColor === 'rose-500') return 'text-rose-500';
+      if (itemColor === 'emerald-600') return 'text-emerald-600';
+      if (itemColor === 'slate-400') return 'text-slate-400';
+      if (itemColor === 'amber-500') return 'text-amber-500';
+      if (itemColor === 'black-600') return 'text-gray-600'; // Assuming black-600 should be gray when inactive
+      return 'text-white'; // Default fallback
+    }
+    return 'text-subtleText group-hover:text-subtleText/70';
+  };
+
   // Load settings from localStorage on initial render
-  useEffect(() => {
+  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
     const savedQuoteType = localStorage.getItem('quoteType');
     const savedSoundEnabled = localStorage.getItem('soundEnabled');
     const savedTheme = localStorage.getItem('theme');
@@ -230,7 +254,7 @@ function App() {
     if (savedSpirals) { try { setSpirals(JSON.parse(savedSpirals)); } catch (e) { console.error("Error parsing spirals from localStorage", e); setSpirals([]); } } else { setSpirals([]); }
     
     setIsLoaded(true); 
-  }, []);
+  }, []); // ESLint disabled due to complex, time-sensitive logic that uses state values from *before* potential reset
 
   // Save settings and data to localStorage whenever they change
   useEffect(() => {
@@ -248,7 +272,6 @@ function App() {
     } else {
       localStorage.removeItem('lastResetTimestamp');
     }
-
     try { localStorage.setItem('tasks', JSON.stringify(tasks)); } catch (e) { console.error("Error stringifying tasks for localStorage", e); }
     try { localStorage.setItem('spirals', JSON.stringify(spirals)); } catch (e) { console.error("Error stringifying spirals for localStorage", e); }
     localStorage.setItem('score', score.toString());
@@ -273,10 +296,10 @@ function App() {
       };
       statsHistory.saveDailyStats(currentStats);
     }
-  }, [
-    quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, // Added dailyResetTime
-    tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, 
-    isLoaded, lastResetTimestamp, displayedIdleTime // customFinishTime is NOT persisted, so not added here
+  }, [ // Include all state variables used in the effect as dependencies
+    quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime,
+    tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime,
+    isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime // Added calculateFocusTime dependency
   ]);
 
   // Apply theme class to body when it changes
@@ -292,7 +315,7 @@ function App() {
   useEffect(() => {
     // Sound initialization (runs once)
     notificationSound.current = new Audio();
-    notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/notification.mp3`;
+    notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/AnnoyingNotification.mp3`;
 
     // Notification permission request (runs once)
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -315,7 +338,7 @@ function App() {
     if (soundEnabled && notificationSound.current) {
       // Ensure src is set (it should be from the initial useEffect, but as a fallback)
       if (!notificationSound.current.src) {
-        notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/notification.mp3`;
+        notificationSound.current.src = `${process.env.PUBLIC_URL}/assets/AnnoyingNotification.mp3`;
       }
       notificationSound.current.currentTime = 0; // Reset sound to start
       notificationSound.current.play()
@@ -396,7 +419,7 @@ function App() {
       }
     ]);
     toast({ title: "Task Added", description: `"${newTaskData.name}" added to your list.` });
-  }, []);
+  }, [setTasks]); // Added setTasks
 
   const handleRemoveTask = useCallback((taskId) => {
     const taskToRemove = tasks.find(t => t.id === taskId);
@@ -412,7 +435,7 @@ function App() {
       setIsTimerActive(false);
       setIsBreakTime(false);
     }
-  }, [tasks, currentTaskIndex]);
+  }, [tasks, currentTaskIndex, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime]); // Added missing dependencies
 
   // Timer Core Logic: Start, Pause, Resume, Done, Extend
   const startTimer = useCallback((taskIndex) => {
@@ -470,7 +493,7 @@ function App() {
     setIsTimerActive(true);
     setIsBreakTime(false); // Ensure break mode is off
     toast({ title: "Task Started", description: `Timer for "${taskToStart.name}" has begun.` });
-  }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime]);
+  }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime]); // Added missing dependencies
 
   const handlePauseTimer = useCallback(() => {
     if (timerIntervalId.current) { 
@@ -479,7 +502,7 @@ function App() {
       setIsTimerActive(false); 
       toast({ title: isBreakTime ? "Break Paused" : "Timer Paused" });
     }
-  }, [isBreakTime, setIsTimerActive]); 
+  }, [isBreakTime, setIsTimerActive]); // Added setIsTimerActive
 
   const handleResumeTimer = useCallback(() => {
     if (!isTimerActive && timeRemaining > 0 && 
@@ -487,7 +510,7 @@ function App() {
        setIsTimerActive(true); 
        toast({ title: isBreakTime ? "Break Resumed" : "Timer Resumed" });
     }
-  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive]); 
+  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive]); // Added setIsTimerActive
 
   const handleTaskDone = useCallback(() => {
     if (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed) {
@@ -514,7 +537,21 @@ function App() {
     pointsEarnedThisTask = Math.max(0, pointsEarnedThisTask);
 
     setScore(prevScore => prevScore + pointsEarnedThisTask);
-    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+    // Confetti centered on the focus card
+    if (focusCardRef.current) {
+      const rect = focusCardRef.current.getBoundingClientRect();
+      const originX = (rect.left + rect.width / 2) / window.innerWidth;
+      const originY = (rect.top + rect.height / 2) / window.innerHeight;
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { x: originX, y: originY },
+        disableForReducedMotion: true // Good practice for accessibility
+      });
+    } else {
+       // Fallback to default origin if ref is not available
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+    }
 
     // Use actualTimeSpent (which could be > estimated if they let timer run out and clicked done)
     // for the task's final timeSpentSeconds for record keeping.
@@ -546,7 +583,7 @@ function App() {
     setIsTimerActive(true); 
     toast({title: "Break Time!", description: `Taking a ${breakDuration} minute break.`});
 
-  }, [tasks, currentTaskIndex, playNotificationSound, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive]);
+  }, [tasks, currentTaskIndex, playNotificationSound, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive, focusCardRef]); // Added missing dependencies
 
   const handleSkipBreak = useCallback(() => {
     if (isBreakTime && isTimerActive) {
@@ -562,7 +599,7 @@ function App() {
     } else {
       toast({title: "No Active Break", description: "There is no active break to skip.", variant: "default"});
     }
-  }, [isBreakTime, isTimerActive, setIsTimerActive, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex]);
+  }, [isBreakTime, isTimerActive, setIsTimerActive, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex]); // Added missing dependencies
 
   const handleExtendTimer = useCallback(() => {
     // If no task active AND not break time, nothing to extend
@@ -585,10 +622,10 @@ function App() {
     }
 
     // For tasks, time must be 0. For breaks, this check is skipped if allowExtendBreak is true.
-    if (!isBreakTime && timeRemaining > 0) {
-        toast({title: "Timer Still Running", description: "Task time can only be extended when the timer reaches 0.", variant: "default"});
-        return;
-    }
+    // if (!isBreakTime && timeRemaining > 0) { // Removed check as we can extend while timer is running
+    //     toast({title: "Timer Still Running", description: "Task time can only be extended when the timer reaches 0.", variant: "default"});
+    //     return;
+    // }
     
     const context = isBreakTime ? "break" : (tasks[currentTaskIndex] ? `task "${tasks[currentTaskIndex].name}"` : "task");
     const defaultExtension = "5";
@@ -598,7 +635,7 @@ function App() {
       title: `Extend ${context}`,
       message: isBreakTime && timeRemaining > 0 ? 
                  `Current break time is ${currentTimerValue}. How many additional minutes would you like to add?` :
-                 `How many minutes would you like to add to the ${context}? ${!isBreakTime && tasks[currentTaskIndex] ? 'Timer is currently at 00:00.' : ''}`,
+                 `How many minutes would you like to add to the ${context}? ${!isBreakTime && tasks[currentTaskIndex] ? 'Timer is currently at ${formatTime(timeRemaining)}.' : ''}`, // Updated message
       inputLabel: 'Minutes to add:',
       defaultValue: defaultExtension,
       confirmText: 'Extend',
@@ -630,11 +667,10 @@ function App() {
         }
       }
     });
-    setIsPromptOpen(true);
-  }, [currentTaskIndex, isBreakTime, isTimerActive, timeRemaining, tasks, allowExtendBreak, setIsPromptOpen, setPromptConfig, setTasks, setScore, setTimeRemaining, setIsTimerActive]);
+  }, [currentTaskIndex, isBreakTime, isTimerActive, timeRemaining, tasks, allowExtendBreak, setPromptConfig, setTasks, setScore, setTimeRemaining, setIsTimerActive]); // Added missing dependencies
 
   // Effect for Timer Countdown
-  useEffect(() => {
+  useEffect(() => { // Added missing dependencies
     if (isTimerActive && timeRemaining > 0) {
       // If timer should be active and there's time, start the interval
       timerIntervalId.current = setInterval(() => {
@@ -688,7 +724,7 @@ function App() {
         timerIntervalId.current = null; 
       }
     };
-  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks]); // Added setTasks
+  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration, showDesktopNotification]); // Added missing dependencies
 
   // Effect for Idle Time Calculation
   useEffect(() => {
@@ -713,7 +749,7 @@ function App() {
 
       return () => clearInterval(intervalId);
     }
-  }, [isTimerActive, sessionStartTime]);
+  }, [isTimerActive, sessionStartTime, calculateFocusTime, setDisplayedIdleTime]); // Added missing dependencies
   
   // Calculate total focus time from completed tasks
   const calculateFocusTime = () => {
@@ -721,28 +757,34 @@ function App() {
       if (task.completed) {
         // For completed tasks, use the actual time spent
         return total + (task.timeSpentSeconds || 0);
-      } else if (task.started && currentTaskIndex !== -1 && tasks[currentTaskIndex]?.id === task.id && isTimerActive) {
+      } else if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
         // For the current active task, add the time spent so far plus the time since the timer started
         const now = Date.now();
         const timeElapsedSinceStart = Math.floor((now - tasks[currentTaskIndex].timerStartTime) / 1000);
-        return total + (task.timeSpentSeconds || 0) + timeElapsedSinceStart;
+        return total + (task.timeSpentSeconds || 0) + timeElapsedSinceStart; // Added task.timeSpentSeconds
       }
-      return total + (task.timeSpentSeconds || 0);
+      return total + (task.timeSpentSeconds || 0); // Added task.timeSpentSeconds fallback
     }, 0);
   };
 
   // Formatting and Display Logic
   const timerDisplayColor = () => {
     if (isBreakTime) return 'text-emerald-400'; // Specific color for break time
-    if (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed) return 'text-timerAccent'; // Default/idle color
+    // Idle state: timer is not active, no task index, or task completed
+    if (!isTimerActive && (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)) return 'text-red-500'; // Default/idle color
     
     const task = tasks[currentTaskIndex];
     const totalTaskSeconds = task.estimatedDuration * 60;
-    if (totalTaskSeconds === 0) return 'text-timerAccent';
+    // If task has no duration or timer is active but timeRemaining is 0, default to teal
+    if ((totalTaskSeconds === 0 && !isBreakTime) || (isTimerActive && timeRemaining === 0 && !isBreakTime)) return 'text-teal-400'; 
+    
     const percentageRemaining = (timeRemaining / totalTaskSeconds) * 100;
-    if (percentageRemaining <= 20) return 'text-red-500';
-    if (percentageRemaining <= 50) return 'text-yellow-500';
-    return 'text-timerAccent';
+    
+    if (percentageRemaining <= 20) return 'text-red-500'; // Low time warning
+    if (percentageRemaining <= 50) return 'text-yellow-500'; // Mid time warning
+    
+    // Default color for active task when not in warning thresholds
+    return 'text-teal-400'; 
   };
 
   const calculateDailyStats = useCallback(() => {
@@ -753,7 +795,7 @@ function App() {
         return acc + (task.timeSpentSeconds || 0);
       }
       if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
-        return acc + (task.timeSpentSeconds || 0);
+        return acc + (task.timeSpentSeconds || 0); // Ensure timeSpentSeconds is included for active task
       }
       return acc;
     }, 0);
@@ -829,7 +871,7 @@ function App() {
       estimatedRemainingTaskTimeMinutes: remainingUncompletedTaskMinutes,
       probNotFinishing: probNotFinishingPercentage,
     };
-  }, [tasks, currentTaskIndex, timeRemaining, isBreakTime, displayedIdleTime, dailyResetTime, customFinishTime]); // Added customFinishTime dependency
+  }, [tasks, currentTaskIndex, timeRemaining, isBreakTime, displayedIdleTime, dailyResetTime, customFinishTime]); // Added missing dependencies
 
   const dailyStats = calculateDailyStats();
   const activeTaskObject = currentTaskIndex !== -1 && tasks[currentTaskIndex] ? tasks[currentTaskIndex] : null;
@@ -840,7 +882,7 @@ function App() {
     setTasks([]);
     localStorage.removeItem('tasks'); // Also clear from localStorage immediately
     toast({ title: "Tasks Cleared", description: "All tasks have been removed.", variant: "destructive" });
-  }, []);
+  }, [setTasks]); // Added setTasks dependency
 
   // Spirals handlers (to be implemented)
   const handleAddSpiral = useCallback((spiralName) => {
@@ -850,7 +892,7 @@ function App() {
     }
     setSpirals(prev => [...prev, { id: Date.now(), name: spiralName.trim() }]);
     toast({title: "Spiral Added", description: `"${spiralName.trim()}" added to spirals.`});
-  }, []);
+  }, [setSpirals]); // Added setSpirals dependency
 
   const handleRemoveSpiral = useCallback((spiralId) => {
     const spiralToRemove = spirals.find(s => s.id === spiralId);
@@ -858,7 +900,7 @@ function App() {
     if (spiralToRemove) {
         toast({title: "Spiral Removed", description: `"${spiralToRemove.name}" removed.`, variant: "destructive"});
     }
-  }, [spirals]);
+  }, [spirals, setSpirals]); // Added setSpirals dependency
 
   const handleMoveSpiralToTasks = useCallback((spiralId) => {
     const spiralToMove = spirals.find(s => s.id === spiralId);
@@ -873,7 +915,7 @@ function App() {
       cancelText: "Cancel",
       placeholder: "e.g., 30",
       onConfirm: (durationText) => {
-        if (durationText === null) return; 
+        if (durationText === null) return;
         const duration = parseInt(durationText, 10);
 
         if (duration && duration > 0) {
@@ -886,7 +928,7 @@ function App() {
       }
     });
     setIsPromptOpen(true); 
-  }, [spirals, handleAddTask, setIsPromptOpen, setPromptConfig]);
+  }, [spirals, handleAddTask, setIsPromptOpen, setPromptConfig, setSpirals]); // Added missing dependencies
 
   const handleMasterPlayPause = () => {
     if (isTimerActive) { // If timer is supposed to be active (running or paused awaiting resume)
@@ -905,217 +947,297 @@ function App() {
         }
       }
     }
-  };
+  }; // Added missing dependencies implicitly handled by called functions
 
   // JSX will be in the next part
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-dark to-dark-100 text-lightText p-3 sm:p-4 md:p-5">
-      {/* Header with natural height */}
-      <header className="bg-gradient-to-r from-dark-100 to-dark-200 p-3.5 rounded-lg shadow-md mb-4 ring-1 ring-dark-300/40 flex flex-col justify-center transition-all duration-300 hover:shadow-lg">
-        <h1 className="text-xl md:text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent">Annoying Pomodoro</h1>
-        
+    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden"> {/* Changed min-h-screen to h-screen */}
+      {/* Custom style to override TaskListC max height */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar.max-h-\\[450px\\], 
+        ul.max-h-\\[450px\\].custom-scrollbar {
+          max-height: 500px !important;
+        }
+      `}} />
+      
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-pink-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}} />
+      </div>
+
+      <div className="relative z-10 p-6 max-w-7xl mx-auto flex flex-col h-full"> {/* Made this a flex column that fills height */}
+        {/* Header */}
+        <div className="mb-8 relative"> 
+          {/* Container for Title and Apple/Quote, making it a flex row and relative for positioning context */}
+          <div className="relative flex items-center justify-center mb-6"> 
+            <h1 className="text-4xl md:text-6xl font-bold flex gap-2">
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: 'linear-gradient(90deg, #ff3b3b 0%, #ff8c00 100%)' }}
+              >
+                Annoying
+              </span>
+              <span
+                className="text-lightText"
+              >
+                Pomodoro
+              </span>
+            </h1>
+
+            {/* Annoying Apple/Tomato and its Quote Bubble - Positioned alongside title */}
         {motivationalQuote && (
-          <div className="relative mx-auto mt-1.5 mb-2 max-w-xl">
-            <div className="bg-dark-300/50 p-2 rounded-md italic text-center text-subtleText text-xs md:text-sm">
-              <span className="text-cyanAccent">"</span>{motivationalQuote}<span className="text-cyanAccent">"</span>
+              <div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center space-x-2 p-1 z-20"> {/* Adjusted to be more flush left, reduced padding and space */}
+                {/* Image from logo192.png */}
+                <img 
+                  src={`${process.env.PUBLIC_URL}/assets/logo192.png`} 
+                  alt="Annoying Character" 
+                  className="h-10 w-10 md:h-12 md:w-12" // Responsive size
+                />
+                
+                {/* Quote Bubble */}
+                <div className="relative bg-gray-800/80 backdrop-blur-md border border-gray-700/70 rounded-lg px-3 py-2 max-w-[180px] md:max-w-[220px] shadow-xl"> {/* Responsive max-width */}
+                  <p className="text-gray-200 italic text-xs md:text-sm leading-snug md:leading-relaxed">"{motivationalQuote}"</p>
+                  {/* Speech bubble pointer (pointing left, adjusted for alignment) */}
+                  <div 
+                    className="absolute top-1/2 -left-2 transform -translate-y-1/2 w-4 h-4 bg-gray-800/80 border-b border-l border-gray-700/70 rotate-45"
+                  />
             </div>
-            <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 rotate-45 bg-dark-300/50"></div>
           </div>
         )}
+          </div>
         
-        {/* Enhanced Stats Display - adjusted for 5 items */}
-        <div className="mt-2 pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-3 sm:gap-4">
+          {/* Stats Grid - This is the existing stats display from your file */}
+          <div className="mt-4 pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-3 sm:gap-4">
           <div className="flex flex-col items-center group">
-            <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
-              <Award className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <Award className="h-4 w-4 mr-1.5 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
               Score
             </div>
-            <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{score}</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-cyanAccent/10 blur-md rounded-full"></div>
+                <span className="relative z-10 text-cyanAccent font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-brightAccent px-3">{score}</span>
           </div>
+            </div>
+            
           <div className="flex flex-col items-center group">
-            <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
-              <CheckCircle className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <CheckCircle className="h-4 w-4 mr-1.5 text-green-500 transition-transform duration-300 group-hover:scale-110" />
               Tasks Done
             </div>
-            <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{tasks.filter(t => t.completed).length}</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/10 blur-md rounded-full"></div>
+                <span className="relative z-10 text-green-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-green-400 px-3">{tasks.filter(t => t.completed).length}</span>
           </div>
+            </div>
+            
           <div className="flex flex-col items-center group">
-            <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
-              <Timer className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <Timer className="h-4 w-4 mr-1.5 text-blue-500 transition-transform duration-300 group-hover:scale-110" />
               Focus Time
             </div>
-            <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{formatDurationToHoursMinutes(dailyStats.accumulatedFocusTimeSeconds)}</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/10 blur-md rounded-full"></div>
+                <span className="relative z-10 text-blue-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-blue-400 px-3">{formatDurationToHoursMinutes(dailyStats.accumulatedFocusTimeSeconds)}</span>
           </div>
+            </div>
+            
           <div className="flex flex-col items-center group">
-            <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
-              <Coffee className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <Coffee className="h-4 w-4 mr-1.5 text-amber-500 transition-transform duration-300 group-hover:scale-110" />
               Idle Time
             </div>
-            <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{formatDurationToHoursMinutes(displayedIdleTime)}</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-amber-500/10 blur-md rounded-full"></div>
+                <span className="relative z-10 text-amber-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-amber-400 px-3">{formatDurationToHoursMinutes(displayedIdleTime)}</span>
           </div>
+            </div>
+            
           <div className="flex flex-col items-center group">
-            <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5">
-              <AlertTriangle className="h-4 w-4 mr-1 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <AlertTriangle className="h-4 w-4 mr-1.5 text-red-500 transition-transform duration-300 group-hover:scale-110" />
               P(Not Finish)
             </div>
-            <span className="text-timerAccent font-bold text-lg md:text-xl transition-all duration-300 group-hover:text-brightAccent">{dailyStats.probNotFinishing}%</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/10 blur-md rounded-full"></div>
+                <span className="relative z-10 text-red-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-red-400 px-3">{dailyStats.probNotFinishing}%</span>
           </div>
         </div>
-      </header>
-
-      {/* Main content area with side navigation - flex-grow for height */}
-      <div className="flex flex-row flex-grow overflow-hidden w-full gap-3 sm:gap-5">
-        {/* Side Navigation - Improved styling */}
-        <div className="flex flex-col gap-2 w-28 sm:w-32">
-          <Button 
-            variant={activeView === 'focus' ? 'default' : 'outline'} 
-            onClick={() => setActiveView('focus')}
-            className={`py-2.5 h-1/4 flex flex-col items-center justify-center text-xs sm:text-sm transition-all duration-300 pl-2 sm:pl-3
-                      ${activeView === 'focus' ? 'shadow-sm ring-1 ring-cyanAccent/60' : 'hover:bg-dark-200/40 hover:ring-1 hover:ring-dark-300/60'}`}
-          >
-            <Timer className={`h-5 w-5 mb-0.5 ${activeView === 'focus' ? 'text-white animate-pulse-subtle' : 'text-subtleText'}`} />
-            <span>Focus</span>
-          </Button>
-          <Button 
-            variant={activeView === 'plan' ? 'default' : 'outline'} 
-            onClick={() => setActiveView('plan')}
-            className={`py-2.5 h-1/4 flex flex-col items-center justify-center text-xs sm:text-sm transition-all duration-300 pl-2 sm:pl-3
-                      ${activeView === 'plan' ? 'shadow-sm ring-1 ring-cyanAccent/60' : 'hover:bg-dark-200/40 hover:ring-1 hover:ring-dark-300/60'}`}
-          >
-            <CheckCircle className={`h-5 w-5 mb-0.5 ${activeView === 'plan' ? 'text-white animate-pulse-subtle' : 'text-subtleText'}`} />
-            <span>Plan</span>
-          </Button>
-          <Button 
-            variant={activeView === 'spirals' ? 'default' : 'outline'} 
-            onClick={() => setActiveView('spirals')}
-            className={`py-2.5 h-1/4 flex flex-col items-center justify-center text-xs sm:text-sm transition-all duration-300 pl-2 sm:pl-3
-                      ${activeView === 'spirals' ? 'shadow-sm ring-1 ring-cyanAccent/60' : 'hover:bg-dark-200/40 hover:ring-1 hover:ring-dark-300/60'}`}
-          >
-            <Award className={`h-5 w-5 mb-0.5 ${activeView === 'spirals' ? 'text-white animate-pulse-subtle' : 'text-subtleText'}`} />
-            <span>Spirals</span>
-          </Button>
-          <Button 
-            variant={activeView === 'settings' ? 'default' : 'outline'} 
-            onClick={() => setActiveView('settings')}
-            className={`py-2.5 h-1/4 flex flex-col items-center justify-center text-xs sm:text-sm transition-all duration-300 pl-2 sm:pl-3
-                      ${activeView === 'settings' ? 'shadow-sm ring-1 ring-cyanAccent/60' : 'hover:bg-dark-200/40 hover:ring-1 hover:ring-dark-300/60'}`}
-          >
-            <Settings className={`h-5 w-5 mb-0.5 ${activeView === 'settings' ? 'text-white animate-pulse-subtle' : 'text-subtleText'}`} />
-            <span>Settings</span>
-          </Button>
-          
-          <Button 
-            variant={activeView === 'dashboard' ? 'default' : 'outline'} 
-            onClick={() => setActiveView('dashboard')}
-            className="py-3 h-1/4 flex flex-col items-center justify-center text-xs sm:text-sm"
-          >
-            <BarChart className="h-5 w-5 mb-1" />
-            <span>Dashboard</span>
-          </Button>
+          </div>
         </div>
 
-        {/* Main view area with padding */}
-        <main className="flex-grow overflow-auto p-2 sm:p-3 rounded-md bg-dark-100/20 backdrop-blur-sm shadow-inner">
+        {/* Main content area with side navigation */}
+      <div className="flex flex-row flex-grow overflow-hidden w-full gap-3 sm:gap-5">
+          {/* Side Navigation - Enhanced with modern styling */}
+          <div className="flex pt-1 flex-col gap-2.5 w-24 sm:w-32 flex-shrink-0"> {/* Added flex-shrink-0 */}
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              const isActive = activeView === item.id;
+              return (
+                <UIButton
+                  key={item.id}
+                  variant={isActive ? 'default' : 'outline'}
+                  onClick={() => setActiveView(item.id)}
+                  className={`py-3 flex flex-col items-center justify-center text-xs sm:text-sm rounded-xl flex-grow
+                            ${
+                              isActive
+                                ? `bg-gradient-to-br from-cyanAccent/20 to-brightAccent/10 shadow-lg shadow-cyanAccent/30 border border-cyanAccent/30` // Always use cyan/bright accent for active
+                                : `bg-dark-200/30 hover:bg-dark-200/50 hover:shadow-md hover:shadow-${item.color}/15`
+                            }
+                            transition-all duration-300 group`}
+                  // The rgba values would ideally come from Tailwind config, here using placeholder logic
+                  // For specific colors like cyanAccent, you might need to map them to RGB if not directly usable in rgba()
+                >
+                  <IconComponent className={`h-6 w-6 mb-2 ${getIconClass(isActive, item.color)}`} />
+                  <span className={isActive ? 'font-medium text-lightText' : 'text-subtleText/90'}>{item.label}</span>
+                </UIButton>
+              );
+            })}
+        </div>
+
+          {/* Main view area */}
+        <main className="flex-grow overflow-auto h-full"> {/* Added h-full to take parent's height, overflow-auto handles scrolling */}
           {/* Content will be conditionally rendered here based on activeView */}
           {activeView === 'focus' && (
-            <Card className="bg-gradient-to-br from-dark-100/90 to-dark-200/90 ring-1 ring-dark-300/50 h-full flex flex-col shadow-md hover:shadow-lg transition-all duration-500">
-              <CardHeader className="text-center py-3 sm:py-3.5 border-b border-dark-300/25">
-                <CardTitle className={`text-xl sm:text-2xl font-semibold transition-colors duration-300 ${currentTaskIndex === -1 && currentDisplayTaskName === "No Active Task" ? "text-subtleText" : "text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent"}`}>
-                  Current Task: <span className={currentTaskIndex !== -1 ? "text-brightAccent" : ""}>{currentDisplayTaskName}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center flex-grow flex flex-col justify-center p-4">
-                {/* Timer display with circle background */}
-                <div className="relative mx-auto mb-5">
-                  <div className="absolute inset-0 rounded-full bg-dark-300/25 flex items-center justify-center"></div>
-                  <div className={`relative z-10 flex flex-col items-center justify-center rounded-full
-                                  ${isBreakTime ? 'bg-gradient-to-br from-emerald-800/15 to-emerald-600/05' : 'bg-gradient-to-br from-dark-300/15 to-dark-200/05'}
-                                  w-48 h-48 sm:w-52 sm:h-52 md:w-56 md:h-56 shadow-inner border border-dark-300/25`}>
-                    <div id="timer-clock-react" className={`text-5xl sm:text-6xl font-mono font-bold ${timerDisplayColor()} tabular-nums transition-colors duration-500`}>
+              <div 
+                className="space-y-8 h-full flex flex-col bg-gradient-to-br from-dark-100/90 to-dark-200/90 shadow-md hover:shadow-lg transition-all duration-500 rounded-xl p-4 sm:p-6"
+                ref={focusCardRef} // Attach the ref here
+              > {/* Removed ring border */}
+                {/* Current Task Header */}
+                <div className="text-center pt-2">
+                  <div className="inline-flex items-center gap-3 bg-gray-900/50 backdrop-blur-sm rounded-2xl px-6 py-3">
+                    <div className={`w-3 h-3 rounded-full ${isTimerActive && !isBreakTime ? 'bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse' : 'bg-gray-600'}`}></div>
+                    <span className="text-gray-300 font-medium">Current Task:</span>
+                    <span className={`font-semibold ${currentTaskIndex !== -1 && !isBreakTime ? "text-cyan-400" : "text-gray-400"}`}>{currentDisplayTaskName}</span>
+                  </div>
+                </div>
+
+                {/* Timer Circle */}
+                <div className="flex justify-center items-center flex-grow">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-2xl scale-110"></div>
+                    <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-full w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 flex flex-col items-center justify-center shadow-2xl">
+                      {/* Circular Progress Indicator */}
+                      <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                        {/* Background track */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="none" 
+                          strokeWidth="2.5" 
+                          stroke="rgba(255,255,255,0.05)" 
+                        />
+                        {/* Progress circle - dynamically calculate stroke-dashoffset based on remaining time */}
+                        {(currentTaskIndex !== -1 || isBreakTime) && (
+                          <circle 
+                            cx="50" 
+                            cy="50" 
+                            r="45" 
+                            fill="none" 
+                            strokeWidth="2.5" 
+                            stroke={isBreakTime ? "#10b981" : "#22d3ee"} 
+                            strokeLinecap="round"
+                            strokeDasharray="283" 
+                            strokeDashoffset={(() => {
+                              // Calculate progress percentage (elapsed time relative to total)
+                              const totalTime = isBreakTime 
+                                ? (breakDuration * 60) 
+                                : (currentTaskIndex !== -1 && tasks[currentTaskIndex] 
+                                  ? tasks[currentTaskIndex].estimatedDuration * 60 
+                                  : 0);
+                                  
+                              if (totalTime <= 0) return "283"; // Default to empty if no total time
+                              
+                              // Calculate elapsed time
+                              const elapsed = totalTime - timeRemaining;
+                              // Calculate progress (percentage of time elapsed)
+                              const progress = 1 - elapsed / totalTime;
+                              
+                              // 283 is approximation of 2πr (2 * π * 45)
+                              // To show elapsed time from filled, use the progress percentage directly
+                              return 283 * (1 - progress);
+                            })()}
+                          />
+                        )}
+                      </svg>
+                      
+                      {/* Adjusted styling: Apply single text color class directly */}
+                      <div id="timer-clock-react" className={`text-6xl sm:text-7xl font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500`}> {/* Removed mb-4 */}
                   {formatTime(timeRemaining)}
                 </div>
-                    {isTimerActive && (
-                      <div className="text-subtleText text-[10px] sm:text-xs mt-1.5">
-                        {isBreakTime ? 'BREAK IN PROGRESS' : 'FOCUS IN PROGRESS'}
+                      {isTimerActive && !isBreakTime && (
+                        <div className=" mt-2 text-sm text-gray-400 uppercase tracking-widest animate-pulse">
+                          FOCUS IN PROGRESS
                       </div>
                     )}
+                       {isTimerActive && isBreakTime && (
+                        <div className="mt-2 text-sm text-emerald-400 uppercase tracking-widest animate-pulse">
+                          BREAK IN PROGRESS
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
-                {/* Control buttons with improved layout */}
-                <div className="flex flex-wrap justify-center items-center gap-2 mb-3">
-                  <Button 
-                    variant={!isTimerActive && timeRemaining === 0 && currentTaskIndex === -1 ? "default" : "buttonGray"}
-                    size="default"
-                    className={`flex-grow sm:flex-grow-0 min-w-[90px] sm:min-w-[100px] py-1.5 text-sm md:text-base font-medium shadow-sm
-                              ${!isTimerActive && timeRemaining === 0 && tasks.findIndex(t => !t.completed) !== -1 ? 
-                                'bg-gradient-to-r from-cyanAccent to-brightAccent hover:opacity-90 transition-all duration-300' : ''}
-                              ${isTimerActive ? 'hover:bg-red-700/50 transition-all duration-300' : ''}`}
+                {/* Control Buttons */}
+                <div className="flex justify-center gap-4 pb-4">
+                  <button
                     onClick={handleMasterPlayPause}
-                    disabled={!isTimerActive && timeRemaining === 0 && tasks.findIndex(t => !t.completed) === -1}
+                    disabled={!isTimerActive && timeRemaining === 0 && tasks.findIndex(t => !t.completed) === -1 && !isBreakTime}
+                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isTimerActive ? "Pause" : (timeRemaining > 0 ? "Resume" : "Start")}
-                  </Button>
-                  <Button 
-                      variant={isBreakTime ? "buttonGray" : "buttonGreen"}
-                    size="default"
-                    className={`flex-grow sm:flex-grow-0 min-w-[90px] sm:min-w-[100px] py-1.5 text-sm md:text-base font-medium shadow-sm
-                              ${!isBreakTime ? 'bg-gradient-to-r from-green-600/90 to-emerald-500/90 hover:opacity-90' : ''}
-                              transition-all duration-300`}
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <div className="relative flex items-center gap-2 sm:gap-3">
+                      {isTimerActive ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                      {isTimerActive ? 'Pause' : (timeRemaining > 0 ? 'Resume' : 'Start')}
+                    </div>
+                  </button>
+                  
+                  <button 
                       onClick={() => {
                         if (isBreakTime) {
                           handleSkipBreak();
                         } else {
                           handleTaskDone();
-                        }
-                      }}
-                      disabled={
-                        isBreakTime ? 
-                          !isTimerActive : 
-                          (
-                            currentTaskIndex === -1 || 
-                            !tasks[currentTaskIndex] || 
-                            tasks[currentTaskIndex].completed
-                          )
+                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                       }
+                    }}
+                    disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
+                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                      {isBreakTime ? "Skip Break" : "Done!"}
-                  </Button>
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <div className="relative flex items-center gap-2 sm:gap-3">
+                      <CheckCircle className="h-5 w-5" />
+                      {isBreakTime ? 'Skip Break' : 'Done!'}
                 </div>
-                <div>
-                  <Button 
-                    variant="buttonGray" 
-                    size="sm" 
-                    className="min-w-[90px] sm:min-w-[100px] py-1.5 text-sm md:text-base font-medium shadow-sm hover:bg-amber-600/40 transition-colors duration-300"
+                  </button>
+                  
+                  <button 
                     onClick={handleExtendTimer}
-                    disabled={
-                      isBreakTime 
-                        ? !allowExtendBreak 
-                        : (
-                            timeRemaining > 0 ||
-                            currentTaskIndex === -1 || 
-                        !tasks[currentTaskIndex] || 
-                        !tasks[currentTaskIndex].started || 
-                            tasks[currentTaskIndex].completed
-                          )
-                    }
+                    disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
+                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <div className="relative flex items-center gap-2 sm:gap-3">
+                      <Plus className="h-5 w-5" />
                     Extend
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+                  </button>
+                </div>
+              </div>
           )}
 
           {activeView === 'plan' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
-              <Card className="lg:col-span-1 bg-gradient-to-br from-dark-100/90 to-dark-200/90 ring-1 ring-dark-300/50 flex flex-col shadow-md hover:shadow-lg transition-all duration-500">
-                <CardHeader className="py-3 border-b border-dark-300/25">
-                  <CardTitle className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent">Plan Your Day</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow flex flex-col overflow-hidden p-3.5">
-                  <TaskForm onAddTask={handleAddTask} />
-                  <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5 flex-grow overflow-y-auto">
+                <UICard className="lg:col-span-1 bg-gradient-to-br from-dark-100/90 to-dark-200/90 flex flex-col shadow-md hover:shadow-lg transition-all duration-500 border-0"> {/* Removed ring border, added border-0 */}
+                  <UICardHeader className="py-3 border-b border-dark-300/25">
+                    <UICardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">Plan Your Day</UICardTitle>
+                  </UICardHeader>
+                  <UICardContent className="flex-grow flex flex-col overflow-hidden p-6"> {/* UICardContent for Plan Your Day */}
+                    <TaskFormC onAddTask={handleAddTask} />
+                    <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5 flex-grow overflow-y-auto"> {/* This div will contain stats and session time, it grows and scrolls */}
                     <h3 className="text-sm font-semibold text-cyanAccent mb-2">Daily Stats</h3>
                     <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs">
                       <div className="flex justify-between items-center">
@@ -1123,35 +1245,42 @@ function App() {
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyanAccent mr-1.5"></span>
                           Total Tasks:
                         </span>
-                        <span className='text-timerAccent font-semibold'>{tasks.length}</span>
+                        <span className='text-grey-400 font-semibold'>{tasks.length}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-subtleText flex items-center">
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5"></span>
                           Total Planned:
                         </span>
-                        <span className='text-timerAccent font-semibold'>{dailyStats.totalPlannedTime} min</span>
+                        <span className='text-teal-400 font-semibold'>{dailyStats.totalPlannedTime} min</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-subtleText flex items-center">
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
                           Remaining:
                         </span>
-                        <span className='text-timerAccent font-semibold'>{dailyStats.estimatedRemainingTaskTimeMinutes} min</span>
+                        <span className='text-teal-400 font-semibold'>{dailyStats.estimatedRemainingTaskTimeMinutes} min</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-subtleText flex items-center">
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
                           P(Not Finishing):
                         </span>
-                        <span className='text-timerAccent font-semibold'>{dailyStats.probNotFinishing}%</span>
+                        <span className='text-teal-400 font-semibold'>{dailyStats.probNotFinishing}%</span>
                       </div>
                     </div>
 
-                    {/* Custom Finish Time */}
+                      {/* Session End Time - collapsible section */}
                     <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5">
-                      <h3 className="text-sm font-semibold text-cyanAccent mb-2">Custom Session End Time</h3>
-                      <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs">
+                        <button 
+                          onClick={() => setIsSessionEndTimeExpanded(!isSessionEndTimeExpanded)}
+                          className="w-full flex justify-between items-center text-sm font-semibold text-cyanAccent mb-2 focus:outline-none hover:text-brightAccent transition-colors"
+                        >
+                          Session End Time
+                          {isSessionEndTimeExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                        </button>
+                        {isSessionEndTimeExpanded && (
+                          <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs animate-fadeIn">
                          <div className="flex justify-between items-center mb-3">
                             <div className="flex items-center">
                                 <Clock className="h-3.5 w-3.5 mr-1 text-cyanAccent" />
@@ -1169,7 +1298,7 @@ function App() {
                                 className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent appearance-none"
                                 style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }} // Ensures native time picker matches theme
                              />
-                            <Button
+                              <UIButton
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => setCustomFinishTime(null)}
@@ -1177,17 +1306,19 @@ function App() {
                                 className="py-1 px-2 text-xs"
                             >
                                 Clear
-                            </Button>
+                              </UIButton>
                          </div>
                          <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
                             Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finish).
                          </div>
                       </div>
+                        )}
                     </div>
-
-                    {/* Clear All Tasks Button */}
-                    <div className="mt-4 pt-4 border-t border-dark-300/40">
-                       <Button
+                    </div> {/* Closing the flex-grow div for stats and session time */}
+                    
+                    {/* Clear All Tasks Button - pushed to bottom */}
+                    <div className="mt-auto pt-4 border-t border-dark-300/40">
+                         <UIButton
                            variant="destructive"
                            size="sm"
                            onClick={handleClearAllTasks}
@@ -1195,19 +1326,26 @@ function App() {
                            className="w-full py-2 text-xs"
                        >
                            Clear All Tasks
-                       </Button>
+                         </UIButton>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </UICardContent>
+                </UICard>
 
-              <Card className="lg:col-span-2 bg-gradient-to-br from-dark-100/90 to-dark-200/90 ring-1 ring-dark-300/50 flex flex-col shadow-md hover:shadow-lg transition-all duration-500">
-                <CardHeader className="py-3 border-b border-dark-300/25">
-                  <CardTitle className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent">Today's Tasks</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow overflow-hidden p-3.5">
-                  <TaskList 
-                      tasks={tasks} 
+                <UICard className="lg:col-span-2 bg-gradient-to-br from-dark-100/90 to-dark-200/90 flex flex-col shadow-md hover:shadow-lg transition-all duration-500 border-0"> {/* UICard for Today's Tasks */}
+                  <UICardHeader className="py-3 border-b border-dark-300/25">
+                    <UICardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">Today's Tasks</UICardTitle>
+                  </UICardHeader>
+                  <UICardContent className="p-6">
+                    <div className="tall-task-list">
+                      <TaskListC 
+                        className="task-list-override"
+                        style={{ "--task-max-height": "400px" }} // CSS variable that will be used in TaskListC
+                        tasks={[...tasks].sort((a, b) => {
+                          // Sort uncompleted tasks first
+                          if (a.completed && !b.completed) return 1;
+                          if (!a.completed && b.completed) return -1;
+                          return 0; // Keep original order within each group
+                        })}
                       onRemoveTask={handleRemoveTask} 
                       onStartTask={(taskId) => {
                           const currentTasks = tasks; 
@@ -1240,35 +1378,36 @@ function App() {
                       isBreakTime={isBreakTime}
                       timeRemaining={timeRemaining}
                   />
-                </CardContent>
-              </Card>
+                    </div>
+                  </UICardContent>
+                </UICard>
             </div>
           )}
 
           {activeView === 'spirals' && (
-            <Card className="bg-gradient-to-br from-dark-100/90 to-dark-200/90 ring-1 ring-dark-300/50 h-full flex flex-col shadow-md hover:shadow-lg transition-all duration-500">
-              <CardHeader className="py-3 border-b border-dark-300/25">
-                <CardTitle className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent">Spirals (Ideas for Later)</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow flex flex-col overflow-hidden p-3.5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTAgOTBjMjIuMDkxIDAgNDAtMTcuOTA5IDQwLTQwUzcyLjA5MSAxMCA1MCAxMCAxMCAyNy45MDkgMTAgNTBzMTcuOTA5IDQwIDQwIDQweiIgc3Ryb2tlPSIjMkQzNzQ4IiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMDMiLz48L3N2Zz4=')] bg-[length:80px_80px]">
-                <SpiralForm onAddSpiral={handleAddSpiral} />
+              <UICard className="bg-gradient-to-br from-dark-100/90 to-dark-200/90 h-full flex flex-col shadow-md hover:shadow-lg transition-all duration-500 border-0"> {/* Removed ring border, added border-0 */}
+                <UICardHeader className="py-3 border-b border-dark-300/25">
+                  <UICardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">Spirals (Ideas for Later)</UICardTitle>
+                </UICardHeader>
+                <UICardContent className="flex-grow flex flex-col overflow-hidden p-6 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTAgOTBjMjIuMDkxIDAgNDAtMTcuOTA5IDQwLTQwUzcyLjA5MSAxMCA1MCAxMCAxMCAyNy45MDkgMTAgNTBzMTcuOTA5IDQwIDQwIDQweiIgc3Ryb2tlPSIjMkQzNzQ4IiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMDMiLz48L3N2Zz4=')] bg-[length:80px_80px]"> {/* Increased padding */}
+                  <SpiralFormC onAddSpiral={handleAddSpiral} />
                 <div className="mt-4 flex-grow overflow-y-auto">
-                  <SpiralList 
+                    <SpiralListC 
                     spirals={spirals} 
                     onRemoveSpiral={handleRemoveSpiral} 
                     onMoveSpiralToTasks={handleMoveSpiralToTasks} 
                   />
                 </div>
-              </CardContent>
-            </Card>
+                </UICardContent>
+              </UICard>
           )}
 
           {activeView === 'settings' && (
-            <Card className="bg-gradient-to-br from-dark-100/90 to-dark-200/90 ring-1 ring-dark-300/50 h-full flex flex-col shadow-md hover:shadow-lg transition-all duration-500">
-              <CardHeader className="py-3 border-b border-dark-300/25">
-                <CardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">App Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow flex flex-col p-3.5 text-sm md:text-base overflow-y-auto">
+              <UICard className="bg-gradient-to-br from-dark-100/90 to-dark-200/90 h-full flex flex-col shadow-md hover:shadow-lg transition-all duration-500 border-0"> {/* Removed ring border, added border-0 */}
+                <UICardHeader className="py-3 border-b border-dark-300/25">
+                  <UICardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">App Settings</UICardTitle>
+                </UICardHeader>
+                <UICardContent className="flex-grow flex flex-col p-6 text-sm md:text-base overflow-y-auto"> {/* Increased padding */}
                 <div className="space-y-5 md:space-y-6">
                   {/* Theme Setting */}
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
@@ -1416,7 +1555,7 @@ function App() {
                       </div>
                        <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
                         <span>Task Extension Penalty:</span>
-                        <span className="text-red-500">-${POINTS_DEDUCTION_FOR_EXTENSION} pts</span>
+                        <span className="text-red-500">-{POINTS_DEDUCTION_FOR_EXTENSION} pts</span>
                       </div>
                     </div>
                     <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
@@ -1454,17 +1593,17 @@ function App() {
                       <span className="font-medium text-xs md:text-sm">About</span>
                     </div>
                     <div className="text-[10px] md:text-xs text-subtleText/80">
-                      Annoying Pomodoro v0.1.1
+                      Annoying Pomodoro v0.2
                     </div>
                   </div>
 
                 </div>
-              </CardContent>
-            </Card>
+                </UICardContent>
+              </UICard>
           )}
           
           {activeView === 'dashboard' && (
-            <DashboardView />
+              <DashboardViewC />
           )}
         </main>
       </div>
@@ -1483,6 +1622,7 @@ function App() {
         onConfirm={promptConfig.onConfirm}
         placeholder={promptConfig.placeholder}
       />
+      </div>
     </div>
   );
 }

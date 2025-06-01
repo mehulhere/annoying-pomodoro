@@ -43,7 +43,7 @@ function SpiralForm({ onAddSpiral }) {
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         className="bg-dark-200/70 border-dark-300/50 focus:ring-cyanAccent focus:border-cyanAccent pl-3 pr-3 py-2 rounded-md shadow-inner transition-all duration-300 hover:bg-dark-200 focus:bg-dark-200"
-                        autocomplete="off"
+                        autoComplete="off"
                     />
                     {spiralName && (
                         <button

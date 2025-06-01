@@ -6,6 +6,7 @@ An interactive Pomodoro timer application designed to keep you focused and produ
 
 *   **Task Management**: Add, remove, and mark tasks as complete.
 *   **Pomodoro Timer**: Classic Pomodoro timer for focused work sessions.
+*   **Circular Progress Timer**: Visual indicator around the timer showing elapsed time.
 *   **Configurable Break Timer**: 
     *   Automatic breaks after task completion.
     *   Adjustable default break duration (1-15 minutes) via settings.
@@ -22,16 +23,16 @@ An interactive Pomodoro timer application designed to keep you focused and produ
     *   Penalties for extending tasks.
 *   **Spirals (Idea Logging)**: A place to jot down ideas or future tasks without breaking your current focus, which can later be moved to the main task list.
 *   **Comprehensive Stats**: 
-    *   In-header display: Score, Tasks Completed, total accumulated Focus Time (updates live).
+    *   In-header display: Score, Tasks Completed, total accumulated Focus Time (updates live), Calculated Idle Time, P(Not Finishing).
     *   Daily Stats in Plan view: Total Tasks, Total Planned Time, Estimated Remaining Time, P(Not Finishing).
-    *   Calculated Idle Time displayed in the header.
-    *   Historical stats dashboard with interactive charts showing focus time and idle time.
-*   **Multiple Views**: 
-    *   **Focus View**: Main timer and current task display.
-    *   **Plan View**: Task planning, task list, and daily stats.
+    *   Historical stats dashboard with interactive charts showing focus time, idle time, tasks completed, and score over time.
+*   **Multiple Views & Navigation**: 
+    *   **Focus View**: Main timer, current task display, and circular progress.
+    *   **Plan View**: Task planning, task list (now scrollable), and daily stats.
     *   **Spirals View**: Manage your ideas and future tasks.
     *   **Settings View**: Customize your application experience.
     *   **Dashboard View**: Visualize productivity metrics over time with charts.
+    *   Redesigned sidebar navigation with distinct active icon colors.
 *   **Rich Settings Panel**:
     *   Theme selection (Light/Dark mode).
     *   Motivation type selection.
@@ -39,14 +40,16 @@ An interactive Pomodoro timer application designed to keep you focused and produ
     *   Default break duration slider.
     *   Toggle for allowing break extensions.
     *   Information display for the points system.
-    *   About section with app version.
+    *   Daily Reset Time configuration.
+    *   About section with app version (v0.2).
 *   **Desktop Notifications**: Get notified when tasks or breaks end.
-*   **Sound Notifications**: Audible alerts for timer events (toggleable).
+*   **Sound Notifications**: Audible alerts for timer events (toggleable), using a custom annoying sound.
 *   **Responsive Design**: UI adapts to different screen sizes, designed to fit within a single viewport.
 *   **GitHub Pages Deployment Ready**: Configured for easy deployment using `gh-pages`.
 *   **Persistence**: All settings are saved to LocalStorage and persist across sessions.
 *   **Historical Stats Tracking**: Daily stats are automatically saved and can be visualized in the dashboard.
 *   **Data Export/Import**: Export and import your historical stats data for backup or transfer.
+*   **Visually Distinct Heading**: The main application title "Annoying Pomodoro" features "Annoying" with a red/orange gradient and "Pomodoro" as solid text.
 
 ## Tech Stack
 
