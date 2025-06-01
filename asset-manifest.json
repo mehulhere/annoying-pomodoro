@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/annoying-pomodoro/static/css/main.85a1e857.css",
-    "main.js": "/annoying-pomodoro/static/js/main.f2decc5a.js",
+    "main.css": "/annoying-pomodoro/static/css/main.7911fba5.css",
+    "main.js": "/annoying-pomodoro/static/js/main.aca1c932.js",
     "index.html": "/annoying-pomodoro/index.html",
-    "main.85a1e857.css.map": "/annoying-pomodoro/static/css/main.85a1e857.css.map",
-    "main.f2decc5a.js.map": "/annoying-pomodoro/static/js/main.f2decc5a.js.map"
+    "main.7911fba5.css.map": "/annoying-pomodoro/static/css/main.7911fba5.css.map",
+    "main.aca1c932.js.map": "/annoying-pomodoro/static/js/main.aca1c932.js.map"
   },
   "entrypoints": [
-    "static/css/main.85a1e857.css",
-    "static/js/main.f2decc5a.js"
+    "static/css/main.7911fba5.css",
+    "static/js/main.aca1c932.js"
   ]
 }

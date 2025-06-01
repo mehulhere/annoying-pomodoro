@@ -1,1 +1,71 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" href="/annoying-pomodoro/assets/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#0d1117"/><meta name="description" content="Time Boxer - A modern time management application"/><link rel="apple-touch-icon" href="/annoying-pomodoro/logo192.png"/><link rel="manifest" href="/annoying-pomodoro/manifest.json"/><title>Time Boxer</title><script defer="defer" src="/annoying-pomodoro/static/js/main.f2decc5a.js"></script><link href="/annoying-pomodoro/static/css/main.85a1e857.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Boxer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>Time Boxer</h1>
+        <p id="nagging-quote" class="nagging-quote-header">Get to work!</p>
+    </header>
+
+    <main>
+        <section id="timer-section">
+            <h2>Current Task: <span id="current-task-name">None</span></h2>
+            <div id="timer-clock">00:00</div>
+            <div id="timer-controls">
+                <button id="start-timer-btn">Start</button>
+                <button id="pause-timer-btn">Pause</button>
+                <button id="extend-timer-btn" disabled>Extend Time</button>
+            </div>
+            <div id="done-button-container">
+                <button id="done-btn">Done!</button>
+            </div>
+        </section>
+
+        <section id="task-planning">
+            <h2>Plan Your Day</h2>
+            <div>
+                <input type="text" id="task-name" placeholder="Task description">
+                <input type="number" id="task-duration" placeholder="Duration (minutes)">
+                <button id="add-task-btn">Add Task</button>
+            </div>
+            <div id="daily-stats">
+                <p data-label="Total Planned Time:"><span id="total-planned-time">0</span></p>
+                <p data-label="Remaining Task Time:"><span id="remaining-task-time">0</span></p>
+                <p data-label="Probability of NOT Finishing Today:"><span id="prob-not-finishing">N/A</span></p>
+            </div>
+        </section>
+
+        <section id="task-list-section">
+            <h2>Today's Tasks</h2>
+            <ul id="task-list">
+                <!-- Tasks will be added here by JavaScript -->
+            </ul>
+        </section>
+
+        <section id="spirals-section">
+            <h2>Spirals (For Later)</h2>
+            <input type="text" id="spiral-task-input" placeholder="Add to spirals...">
+            <button id="add-to-spirals-btn">Add Spiral</button>
+            <ul id="spirals-list">
+                <!-- Spiral tasks will be added here -->
+            </ul>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Scoring and other stats will go here.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
