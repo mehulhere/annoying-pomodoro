@@ -776,6 +776,12 @@ function App() {
   const currentDisplayTaskName = isBreakTime ? "Break Time!" : (activeTaskObject ? activeTaskObject.name : "No Active Task");
   const activeTaskOriginalId = activeTaskObject ? activeTaskObject.id : null;
 
+  const handleClearAllTasks = useCallback(() => {
+    setTasks([]);
+    localStorage.removeItem('tasks'); // Also clear from localStorage immediately
+    toast({ title: "Tasks Cleared", description: "All tasks have been removed.", variant: "destructive" });
+  }, []);
+
   // Spirals handlers (to be implemented)
   const handleAddSpiral = useCallback((spiralName) => {
     if (!spiralName.trim()) {
@@ -1108,6 +1114,19 @@ function App() {
                             Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finish).
                          </div>
                       </div>
+                    </div>
+
+                    {/* Clear All Tasks Button */}
+                    <div className="mt-4 pt-4 border-t border-dark-300/40">
+                       <Button
+                           variant="destructive"
+                           size="sm"
+                           onClick={handleClearAllTasks}
+                           disabled={tasks.length === 0}
+                           className="w-full py-2 text-xs"
+                       >
+                           Clear All Tasks
+                       </Button>
                     </div>
                   </div>
                 </CardContent>
