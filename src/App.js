@@ -9,7 +9,9 @@ import confetti from 'canvas-confetti';
 import { PromptDialog } from './components/ui/PromptDialog';
 import SpiralForm from './components/SpiralForm';
 import SpiralList from './components/SpiralList';
-import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit, AlertTriangle, Globe, Clock } from 'lucide-react';
+import DashboardView from './components/DashboardView';
+import * as statsHistory from './lib/statsHistory';
+import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit, AlertTriangle, Globe, Clock, BarChart } from 'lucide-react';
 // Spirals components will be added later
 
 // Different quote categories
@@ -104,6 +106,12 @@ function App() {
   const [allowExtendBreak, setAllowExtendBreak] = useState(true); // Default setting for extending breaks
   const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata'); // Default timezone
   const [dailyResetTime, setDailyResetTime] = useState("00:00"); // Default daily reset time
+  const [lastResetTimestamp, setLastResetTimestamp] = useState(null); // When the last daily reset occurred (timestamp)
+  const [customFinishTime, setCustomFinishTime] = useState(null); // Custom finish time for today
+  const [isLoaded, setIsLoaded] = useState(false); // To prevent saves before loads complete
+  const [activeView, setActiveView] = useState('focus'); // 'focus', 'plan', 'spirals', 'settings', 'dashboard'
+  const [sessionStartTime, setSessionStartTime] = useState(null); // Timestamp when the first task of the session started
+  const [displayedIdleTime, setDisplayedIdleTime] = useState(0); // Idle time in seconds
   
   // State for PromptDialog
   const [isPromptOpen, setIsPromptOpen] = useState(false);
@@ -117,13 +125,6 @@ function App() {
     onConfirm: () => {},
     placeholder: '',
   });
-
-  const [activeView, setActiveView] = useState('focus'); // 'focus', 'plan', 'spirals', 'settings'
-  const [sessionStartTime, setSessionStartTime] = useState(null); // Timestamp when the first task of the session started
-  const [displayedIdleTime, setDisplayedIdleTime] = useState(0); // Idle time in seconds
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [lastResetTimestamp, setLastResetTimestamp] = useState(null);
-  const [customFinishTime, setCustomFinishTime] = useState(null); // e.g., "17:00" or null
 
   // Load settings from localStorage on initial render
   useEffect(() => {
@@ -172,6 +173,21 @@ function App() {
 
     // --- Load or Reset Data States ---
     if (performReset) {
+      // Save the previous day's stats before resetting
+      const previousDayStats = {
+        date: new Date(currentLastResetTs - 86400000).toISOString().split('T')[0], // Yesterday's date
+        focusTime: calculateFocusTime(),
+        idleTime: displayedIdleTime,
+        tasksCompleted: tasks.filter(t => t.completed).length,
+        score: score,
+        totalTasks: tasks.length,
+        totalPlannedTime: tasks.reduce((total, task) => total + task.estimatedDuration, 0)
+      };
+      
+      // Save stats to history
+      statsHistory.saveDailyStats(previousDayStats);
+      
+      // Now reset current day's data
       setTasks([]);
       setScore(0);
       setSessionStartTime(null);
@@ -179,6 +195,7 @@ function App() {
       setTimeRemaining(0);
       setIsTimerActive(false);
       setIsBreakTime(false);
+      setDisplayedIdleTime(0);
       // Spirals are NOT reset. Settings are NOT reset.
       // The save useEffect will persist these new default values because isLoaded is still false.
     } else {
@@ -240,10 +257,26 @@ function App() {
     localStorage.setItem('timeRemaining', timeRemaining.toString());
     localStorage.setItem('isTimerActive', isTimerActive.toString());
     localStorage.setItem('isBreakTime', isBreakTime.toString());
+    
+    // Save current day's stats to history for real-time dashboard updates
+    // Only save if we have tasks and a session has started
+    if (tasks.length > 0 && sessionStartTime !== null) {
+      const today = new Date().toISOString().split('T')[0];
+      const currentStats = {
+        date: today,
+        focusTime: calculateFocusTime(),
+        idleTime: displayedIdleTime,
+        tasksCompleted: tasks.filter(t => t.completed).length,
+        score: score,
+        totalTasks: tasks.length,
+        totalPlannedTime: tasks.reduce((total, task) => total + task.estimatedDuration, 0)
+      };
+      statsHistory.saveDailyStats(currentStats);
+    }
   }, [
     quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, // Added dailyResetTime
     tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, 
-    isLoaded, lastResetTimestamp // customFinishTime is NOT persisted, so not added here
+    isLoaded, lastResetTimestamp, displayedIdleTime // customFinishTime is NOT persisted, so not added here
   ]);
 
   // Apply theme class to body when it changes
@@ -659,19 +692,44 @@ function App() {
 
   // Effect for Idle Time Calculation
   useEffect(() => {
-    const idleInterval = setInterval(() => {
-      if (!sessionStartTime) {
-        setDisplayedIdleTime(0);
-        return;
-      }
-      const totalProductiveSeconds = tasks.reduce((acc, task) => acc + (task.timeSpentSeconds || 0), 0);
-      const totalSessionDurationSeconds = (Date.now() - sessionStartTime) / 1000;
-      const currentIdleTime = Math.max(0, totalSessionDurationSeconds - totalProductiveSeconds);
-      setDisplayedIdleTime(currentIdleTime);
-    }, 1000);
+    if (!isTimerActive && sessionStartTime !== null) {
+      const updateIdleTime = () => {
+        // Calculate time elapsed since the session started in seconds
+        const now = Date.now();
+        const totalSessionTimeSeconds = Math.floor((now - sessionStartTime) / 1000);
+        
+        // Calculate total focus time (sum of time spent on completed tasks)
+        const totalFocusTimeSeconds = calculateFocusTime();
+        
+        // Idle time = total session time - total focus time
+        const calculatedIdleTime = Math.max(0, totalSessionTimeSeconds - totalFocusTimeSeconds);
+        
+        setDisplayedIdleTime(calculatedIdleTime);
+      };
+      
+      // Update immediately and then every minute
+      updateIdleTime();
+      const intervalId = setInterval(updateIdleTime, 60000); // 60 seconds
 
-    return () => clearInterval(idleInterval);
-  }, [sessionStartTime, tasks]);
+      return () => clearInterval(intervalId);
+    }
+  }, [isTimerActive, sessionStartTime]);
+  
+  // Calculate total focus time from completed tasks
+  const calculateFocusTime = () => {
+    return tasks.reduce((total, task) => {
+      if (task.completed) {
+        // For completed tasks, use the actual time spent
+        return total + (task.timeSpentSeconds || 0);
+      } else if (task.started && currentTaskIndex !== -1 && tasks[currentTaskIndex]?.id === task.id && isTimerActive) {
+        // For the current active task, add the time spent so far plus the time since the timer started
+        const now = Date.now();
+        const timeElapsedSinceStart = Math.floor((now - tasks[currentTaskIndex].timerStartTime) / 1000);
+        return total + (task.timeSpentSeconds || 0) + timeElapsedSinceStart;
+      }
+      return total + (task.timeSpentSeconds || 0);
+    }, 0);
+  };
 
   // Formatting and Display Logic
   const timerDisplayColor = () => {
@@ -944,6 +1002,15 @@ function App() {
           >
             <Settings className={`h-5 w-5 mb-0.5 ${activeView === 'settings' ? 'text-white animate-pulse-subtle' : 'text-subtleText'}`} />
             <span>Settings</span>
+          </Button>
+          
+          <Button 
+            variant={activeView === 'dashboard' ? 'default' : 'outline'} 
+            onClick={() => setActiveView('dashboard')}
+            className="py-3 h-1/4 flex flex-col items-center justify-center text-xs sm:text-sm"
+          >
+            <BarChart className="h-5 w-5 mb-1" />
+            <span>Dashboard</span>
           </Button>
         </div>
 
@@ -1241,30 +1308,15 @@ function App() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5 text-[10px] md:text-xs">
-                      <div 
-                        className={`${quoteType === 'nagging' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded p-1.5 text-center cursor-pointer hover:bg-cyanAccent/20 hover:text-cyanAccent transition-colors`}
-                        onClick={() => setQuoteType('nagging')}
-                      >
-                        Nagging
-                      </div>
-                      <div 
-                        className={`${quoteType === 'rude' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded p-1.5 text-center cursor-pointer hover:bg-cyanAccent/20 hover:text-cyanAccent transition-colors`}
-                        onClick={() => setQuoteType('rude')}
-                      >
-                        Rude
-                      </div>
-                      <div 
-                        className={`${quoteType === 'annoying' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded p-1.5 text-center cursor-pointer hover:bg-cyanAccent/20 hover:text-cyanAccent transition-colors`}
-                        onClick={() => setQuoteType('annoying')}
-                      >
-                        Annoying
-                      </div>
-                      <div 
-                        className={`${quoteType === 'abusive' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded p-1.5 text-center cursor-pointer hover:bg-cyanAccent/20 hover:text-cyanAccent transition-colors`}
-                        onClick={() => setQuoteType('abusive')}
-                      >
-                        Abusive
-                      </div>
+                      {Object.keys(quoteCategories).map(type => (
+                        <div 
+                          key={type}
+                          className={`${quoteType === type ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded p-1.5 text-center cursor-pointer hover:bg-cyanAccent/20 hover:text-cyanAccent transition-colors`}
+                          onClick={() => setQuoteType(type)}
+                        >
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </div>
+                      ))}
                     </div>
                   </div>
                   
@@ -1301,14 +1353,14 @@ function App() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button 
-                          className={`${allowExtendBreak ? 'bg-dark-200/80 text-white' : 'bg-dark-200/30 text-subtleText opacity-60'} hover:bg-dark-300/80 transition-colors rounded-full px-2.5 py-1 text-[10px] md:text-xs`}
+                          className={`${allowExtendBreak ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setAllowExtendBreak(true)}
                         >
                           Yes
                         </button>
                         <button 
-                          className={`${!allowExtendBreak ? 'bg-dark-200/80 text-white' : 'bg-dark-200/30 text-subtleText opacity-60'} hover:bg-dark-300/80 transition-colors rounded-full p-1 md:p-1.5`}
-                          onClick={() => setSoundEnabled(false)}
+                          className={`${!allowExtendBreak ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                          onClick={() => setAllowExtendBreak(false)}
                         >
                           No
                         </button>
@@ -1334,7 +1386,7 @@ function App() {
                       step="1"
                       value={breakDuration}
                       onChange={(e) => setBreakDuration(parseInt(e.target.value, 10))}
-                      className="w-full h-1.5 bg-dark-300 rounded-lg appearance-none cursor-pointer"
+                      className="w-full h-1.5 bg-dark-300 rounded-lg appearance-none cursor-pointer range-thumb-cyanAccent"
                     />
                     <div className="flex justify-between text-[10px] md:text-xs text-subtleText/80 mt-1">
                       <span>1 min</span>
@@ -1355,29 +1407,20 @@ function App() {
                     </div>
                     <div className="grid grid-cols-1 gap-1.5 mt-2 text-[10px] md:text-xs">
                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
-                        <span>Base Score:</span>
-                        <span className="text-cyanAccent">1 pt per minute focused</span>
+                        <span>Base Score (Focus):</span>
+                        <span className="text-cyanAccent">1 pt per minute</span>
                       </div>
                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
-                        <span>Time Bonus:</span>
+                        <span>Time Saved Bonus:</span>
                         <span className="text-cyanAccent">1 pt per minute saved</span>
                       </div>
-                      {/* Removed Extension Penalty for simplicity with new scoring */}
+                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
+                        <span>Task Extension Penalty:</span>
+                        <span className="text-red-500">-${POINTS_DEDUCTION_FOR_EXTENSION} pts</span>
+                      </div>
                     </div>
                     <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
-                      Score is based on total minutes focused and minutes saved compared to estimated duration.
-                    </div>
-                  </div>
-
-                  {/* About Section */}
-                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
-                    <div className="flex items-center mb-2">
-                      <BrainCircuit className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
-                      <span className="font-medium text-xs md:text-sm">About</span>
-                    </div>
-                    <div className="text-[10px] md:text-xs text-subtleText/80">
-                      Annoying Pomodoro v0.1.0<br />
-                      An annoyingly effective time management app
+                      Score is based on total minutes focused and minutes saved compared to estimated duration. Extending tasks deducts points.
                     </div>
                   </div>
 
@@ -1385,7 +1428,7 @@ function App() {
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center">
-                        <Timer className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
+                        <Clock className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
                         <span className="font-medium text-xs md:text-sm">Daily Reset Time</span>
                       </div>
                       <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
@@ -1397,22 +1440,36 @@ function App() {
                       value={dailyResetTime}
                       onChange={(e) => setDailyResetTime(e.target.value)}
                       className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent appearance-none"
-                      style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }} // Ensures native time picker matches theme
+                      style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }} 
                     />
                     <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
-                      Time at which tasks, score, and timers reset daily. Spirals are not affected.
+                      Time at which tasks, score, and timers reset daily. Spirals and historical stats are not affected.
                     </div>
                   </div>
 
-                  {/* Timezone Setting */}
-                  {/* Removed Timezone Setting */}
+                  {/* About Section */}
+                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
+                    <div className="flex items-center mb-2">
+                      <BrainCircuit className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
+                      <span className="font-medium text-xs md:text-sm">About</span>
+                    </div>
+                    <div className="text-[10px] md:text-xs text-subtleText/80">
+                      Annoying Pomodoro v0.1.1
+                    </div>
+                  </div>
+
                 </div>
               </CardContent>
             </Card>
           )}
+          
+          {activeView === 'dashboard' && (
+            <DashboardView />
+          )}
         </main>
       </div>
 
+      {/* Toaster component for displaying toast notifications */}
       <Toaster />
       <PromptDialog 
         isOpen={isPromptOpen}

@@ -25,11 +25,13 @@ An interactive Pomodoro timer application designed to keep you focused and produ
     *   In-header display: Score, Tasks Completed, total accumulated Focus Time (updates live).
     *   Daily Stats in Plan view: Total Tasks, Total Planned Time, Estimated Remaining Time, P(Not Finishing).
     *   Calculated Idle Time displayed in the header.
+    *   Historical stats dashboard with interactive charts showing focus time and idle time.
 *   **Multiple Views**: 
     *   **Focus View**: Main timer and current task display.
     *   **Plan View**: Task planning, task list, and daily stats.
     *   **Spirals View**: Manage your ideas and future tasks.
     *   **Settings View**: Customize your application experience.
+    *   **Dashboard View**: Visualize productivity metrics over time with charts.
 *   **Rich Settings Panel**:
     *   Theme selection (Light/Dark mode).
     *   Motivation type selection.
@@ -43,6 +45,8 @@ An interactive Pomodoro timer application designed to keep you focused and produ
 *   **Responsive Design**: UI adapts to different screen sizes, designed to fit within a single viewport.
 *   **GitHub Pages Deployment Ready**: Configured for easy deployment using `gh-pages`.
 *   **Persistence**: All settings are saved to LocalStorage and persist across sessions.
+*   **Historical Stats Tracking**: Daily stats are automatically saved and can be visualized in the dashboard.
+*   **Data Export/Import**: Export and import your historical stats data for backup or transfer.
 
 ## Tech Stack
 
