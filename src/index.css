@@ -245,3 +245,49 @@ input[type="number"] {
     -moz-appearance: textfield;
     /* Firefox */
 }
+
+/* Media query for small heights - moves current task to the left */
+@media (max-height: 630px) {
+
+    /* Reposition task header to top left */
+    .focus-view-container .task-header-wrapper {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 10;
+        margin-bottom: 0;
+        padding-top: 0;
+        text-align: left;
+    }
+
+    .focus-view-container .task-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .focus-view-container .task-header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .focus-view-container .task-label {
+        margin-bottom: 0.25rem;
+    }
+
+    /* Adjust timer size for smaller heights */
+    .timer-circle {
+        width: min(30vh, 240px) !important;
+        height: min(30vh, 240px) !important;
+        min-width: 160px !important;
+        min-height: 160px !important;
+    }
+
+    /* Make the timer circle smaller on very small heights */
+    @media (max-height: 500px) {
+        .timer-circle {
+            min-width: 140px !important;
+            min-height: 140px !important;
+        }
+    }
+}

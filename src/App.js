@@ -1031,12 +1031,12 @@ function App() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-pink-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}} />
       </div>
 
-      <div className="relative z-10 p-6 max-w-7xl mx-auto flex flex-col h-full"> {/* Made this a flex column that fills height */}
+      <div className="relative z-10 p-2 sm:p-6 max-w-7xl mx-auto flex flex-col h-full"> {/* Made this a flex column that fills height, reduced padding on small screens */}
         {/* Header */}
-        <div className="mb-8 relative"> 
+        <div className="mb-2 sm:mb-8 relative"> {/* Reduced margin on small screens */}
           {/* Container for Title and Apple/Quote, making it a flex row and relative for positioning context */}
-          <div className="relative flex items-center justify-center mb-6"> 
-            <h1 className="text-4xl md:text-6xl font-bold flex gap-2">
+          <div className="relative flex items-center justify-center mb-2 sm:mb-6"> {/* Reduced margin on small screens */}
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold flex gap-2"> {/* Smaller text on small screens */}
               <span
                 className="bg-clip-text text-transparent"
                 style={{ backgroundImage: 'linear-gradient(90deg, #ff3b3b 0%, #ff8c00 100%)' }}
@@ -1057,12 +1057,12 @@ function App() {
                 <img 
                   src={`${process.env.PUBLIC_URL}/assets/logo192.png`} 
                   alt="Annoying Character" 
-                  className="h-10 w-10 md:h-12 md:w-12" // Responsive size
+                  className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" /* Smaller on small screens */
                 />
                 
                 {/* Quote Bubble */}
-                <div className="relative bg-gray-800/80 backdrop-blur-md border border-gray-700/70 rounded-lg px-3 py-2 max-w-[180px] md:max-w-[220px] shadow-xl"> {/* Responsive max-width */}
-                  <p className="text-gray-200 italic text-xs md:text-sm leading-snug md:leading-relaxed">"{motivationalQuote}"</p>
+                <div className="relative bg-gray-800/80 backdrop-blur-md border border-gray-700/70 rounded-lg px-2 py-1 sm:px-3 sm:py-2 max-w-[140px] sm:max-w-[180px] md:max-w-[220px] shadow-xl"> {/* Smaller on small screens */}
+                  <p className="text-gray-200 italic text-[10px] sm:text-xs md:text-sm leading-snug md:leading-relaxed">"{motivationalQuote}"</p>
                   {/* Speech bubble pointer (pointing left, adjusted for alignment) */}
                   <div 
                     className="absolute top-1/2 -left-2 transform -translate-y-1/2 w-4 h-4 bg-gray-800/80 border-b border-l border-gray-700/70 rotate-45"
@@ -1073,68 +1073,68 @@ function App() {
           </div>
         
           {/* Stats Grid - This is the existing stats display from your file */}
-          <div className="mt-4 pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-3 sm:gap-4">
+          <div className="mt-2 sm:mt-4 pt-1 sm:pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-2 sm:gap-3 lg:gap-4"> {/* Reduced spacing */}
           <div className="flex flex-col items-center group">
-              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
-                <Award className="h-4 w-4 mr-1.5 text-cyanAccent transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium"> {/* Smaller text */}
+                <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-cyanAccent transition-transform duration-300 group-hover:scale-110" /> {/* Smaller icon */}
               Score
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-cyanAccent/10 blur-md rounded-full"></div>
-                <span className="score-display relative z-10 text-cyanAccent font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-brightAccent px-3">{score}</span>
+                <span className="score-display relative z-10 text-cyanAccent font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-brightAccent px-2 sm:px-2">{score}</span> {/* Smaller text */}
           </div>
             </div>
             
           <div className="flex flex-col items-center group">
-              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
-                <CheckCircle className="h-4 w-4 mr-1.5 text-green-500 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-green-500 transition-transform duration-300 group-hover:scale-110" />
               Tasks Done
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-green-500/10 blur-md rounded-full"></div>
-                <span className="relative z-10 text-green-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-green-400 px-3">{tasks.filter(t => t.completed).length}</span>
+                <span className="relative z-10 text-green-500 font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-green-400 px-2 sm:px-3">{tasks.filter(t => t.completed).length}</span>
           </div>
             </div>
             
           <div className="flex flex-col items-center group">
-              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
-                <Timer className="h-4 w-4 mr-1.5 text-blue-500 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <Timer className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-blue-500 transition-transform duration-300 group-hover:scale-110" />
               Focus Time
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-blue-500/10 blur-md rounded-full"></div>
-                <span className="relative z-10 text-blue-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-blue-400 px-3">{formatDurationToHoursMinutes(dailyStats.accumulatedFocusTimeSeconds)}</span>
+                <span className="relative z-10 text-blue-500 font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-blue-400 px-2 sm:px-3">{formatDurationToHoursMinutes(dailyStats.accumulatedFocusTimeSeconds)}</span>
           </div>
             </div>
             
           <div className="flex flex-col items-center group">
-              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
-                <Coffee className="h-4 w-4 mr-1.5 text-amber-500 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <Coffee className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-amber-500 transition-transform duration-300 group-hover:scale-110" />
               Idle Time
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-amber-500/10 blur-md rounded-full"></div>
-                <span className="relative z-10 text-amber-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-amber-400 px-3">{formatDurationToHoursMinutes(displayedIdleTime)}</span>
+                <span className="relative z-10 text-amber-500 font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-amber-400 px-2 sm:px-3">{formatDurationToHoursMinutes(displayedIdleTime)}</span>
           </div>
             </div>
             
           <div className="flex flex-col items-center group">
-              <div className="flex items-center text-subtleText text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
-                <AlertTriangle className="h-4 w-4 mr-1.5 text-red-500 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
+                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-red-500 transition-transform duration-300 group-hover:scale-110" />
               P(Not Finish)
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-red-500/10 blur-md rounded-full"></div>
-                <span className="relative z-10 text-red-500 font-bold text-xl md:text-2xl transition-all duration-300 group-hover:text-red-400 px-3">{dailyStats.probNotFinishing}%</span>
+                <span className="relative z-10 text-red-500 font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-red-400 px-2 sm:px-3">{dailyStats.probNotFinishing}%</span>
           </div>
         </div>
           </div>
         </div>
 
         {/* Main content area with side navigation */}
-      <div className="flex flex-row flex-grow overflow-hidden w-full gap-3 sm:gap-5">
+        <div className="flex flex-col sm:flex-row flex-grow overflow-hidden w-full gap-2 sm:gap-3 lg:gap-5"> {/* Changed flex-row to flex-col on mobile */}
           {/* Side Navigation - Enhanced with modern styling */}
-          <div className="flex pt-1 flex-col gap-2.5 w-24 sm:w-32 flex-shrink-0"> {/* Added flex-shrink-0 */}
+          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1.5 lg:gap-2.5 w-full sm:w-16 sm:w-24 lg:w-32 flex-shrink-0 justify-between"> 
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = activeView === item.id;
@@ -1143,7 +1143,7 @@ function App() {
                   key={item.id}
                   variant={isActive ? 'default' : 'outline'}
                   onClick={() => setActiveView(item.id)}
-                  className={`py-3 flex flex-col items-center justify-center text-xs sm:text-sm rounded-xl flex-grow
+                  className={`h-14 sm:h-auto py-2 sm:py-3 px-2 sm:px-3 flex flex-col items-center justify-center text-xs sm:text-xs lg:text-sm rounded-lg sm:rounded-xl w-[18%] sm:w-auto
                             ${
                               isActive
                                 ? `bg-gradient-to-br from-cyanAccent/20 to-brightAccent/10 shadow-lg shadow-cyanAccent/30 border border-cyanAccent/30` // Always use cyan/bright accent for active
@@ -1153,8 +1153,8 @@ function App() {
                   // The rgba values would ideally come from Tailwind config, here using placeholder logic
                   // For specific colors like cyanAccent, you might need to map them to RGB if not directly usable in rgba()
                 >
-                  <IconComponent className={`h-6 w-6 mb-2 ${getIconClass(isActive, item.color)}`} />
-                  <span className={isActive ? 'font-medium text-lightText' : 'text-subtleText/90'}>{item.label}</span>
+                  <IconComponent className={`h-5 w-5 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mb-1 sm:mb-2 ${getIconClass(isActive, item.color)}`} />
+                  <span className={`${isActive ? 'font-medium text-lightText' : 'text-subtleText/90'} truncate`}>{item.label}</span>
                 </UIButton>
               );
             })}
@@ -1165,23 +1165,25 @@ function App() {
           {/* Content will be conditionally rendered here based on activeView */}
           {activeView === 'focus' && (
               <div 
-                className="space-y-8 h-full flex flex-col bg-gradient-to-br from-dark-100/90 to-dark-200/90 shadow-md hover:shadow-lg transition-all duration-500 rounded-xl p-4 sm:p-6 relative"
+                className="h-full flex flex-col bg-gradient-to-br from-dark-100/90 to-dark-200/90 shadow-md hover:shadow-lg transition-all duration-500 rounded-xl p-2 sm:p-4 lg:p-6 relative focus-view-container"
                 ref={focusCardRef} // Attach the ref here
-              > {/* Removed ring border, Added relative */}
-                {/* Current Task Header */}
-                <div className="text-center pt-2">
-                  <div className="inline-flex items-center gap-3 bg-gray-900/50 backdrop-blur-sm rounded-2xl px-6 py-3">
-                    <div className={`w-3 h-3 rounded-full ${isTimerActive && !isBreakTime ? 'bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse' : 'bg-gray-600'}`}></div>
-                    <span className="text-gray-300 font-medium">Current Task:</span>
-                    <span className={`font-semibold ${currentTaskIndex !== -1 && !isBreakTime ? "text-cyan-400" : "text-gray-400"}`}>{currentDisplayTaskName}</span>
+              > 
+                {/* Current Task Header - normal position by default, moved to top left on small heights via CSS */}
+                <div className="task-header-wrapper text-center pt-1 sm:pt-1 mb-3 sm:mb-4 min-w-[10R0px]"> {/* Increased default pt and mb */}
+                  <div className="inline-flex items-center gap-2 sm:gap-2 bg-gray-900/70 backdrop-blur-sm rounded-xl px-3 py-2 sm:px-3 sm:py-2 text-sm sm:text-base task-header"> {/* Increased default padding, gap, and text size */}
+                    <div className={`w-2 h-2 sm:w-2 sm:h-2 rounded-full ${isTimerActive && !isBreakTime ? 'bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse' : 'bg-gray-600'}`}></div> {/* Increased default dot size */}
+                    <div className="task-header-content">
+                      <span className="text-gray-300 font-medium task-label">Current Task: </span>
+                      <span className={`font-semibold ${currentTaskIndex !== -1 && !isBreakTime ? "text-cyan-400" : "text-gray-400"} task-name max-w-[200px] truncate`}>{currentDisplayTaskName}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Timer Circle */}
-                <div className="flex justify-center items-center flex-grow">
+                {/* Timer Circle - centered in the container */}
+                <div className="flex-grow flex items-center justify-center timer-container">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-2xl scale-110"></div>
-                    <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-full w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 flex flex-col items-center justify-center shadow-2xl">
+                    <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-full w-[min(35vh,70vw)] h-[min(35vh,70vw)] min-w-[150px] min-h-[150px] flex flex-col items-center justify-center shadow-2xl timer-circle">
                       {/* Circular Progress Indicator */}
                       <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                         {/* Background track */}
@@ -1229,17 +1231,17 @@ function App() {
                         />
                       </svg>
                       
-                      {/* Adjusted styling: Apply single text color class directly */}
-                      <div id="timer-clock-react" className={`text-6xl sm:text-7xl font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500`}> {/* Removed mb-4 */}
-                  {formatTime(timeRemaining)}
-                </div>
-                      {isTimerActive && !isBreakTime && (
-                        <div className=" mt-2 text-sm text-gray-400 uppercase tracking-widest animate-pulse">
-                          FOCUS IN PROGRESS
+                      {/* Adjusted styling: Apply responsive font size based on viewport height */}
+                      <div id="timer-clock-react" className={`text-[6vh] text-[length:clamp(0rem,min(6vh,14vw),4rem)] font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500`}>
+                        {formatTime(timeRemaining)}
                       </div>
-                    )}
-                       {isTimerActive && isBreakTime && (
-                        <div className="mt-2 text-sm text-emerald-400 uppercase tracking-widest animate-pulse">
+                      {isTimerActive && !isBreakTime && (
+                        <div className="mt-1 text-xs sm:text-sm text-gray-400 uppercase tracking-widest animate-pulse">
+                          FOCUS IN PROGRESS
+                        </div>
+                      )}
+                      {isTimerActive && isBreakTime && (
+                        <div className="mt-1 text-xs sm:text-sm text-emerald-400 uppercase tracking-widest animate-pulse">
                           BREAK IN PROGRESS
                         </div>
                       )}
@@ -1248,15 +1250,15 @@ function App() {
                 </div>
                 
                 {/* Control Buttons */}
-                <div className="flex justify-center gap-4 pb-4">
+                <div className="flex justify-center gap-2 sm:gap-2 mt-4 pb-2 sm:pb-2"> {/* Increased default pb */}
                   <button
                     onClick={handleMasterPlayPause}
                     disabled={isTimerActive || (!isTimerActive && (tasks.findIndex(t => !t.completed) === -1 || (currentTaskIndex !== -1 && timeRemaining === 0 && !isBreakTime)))} // Disable if active, or if not active and (no uncompleted tasks OR (current task timer is 0 and not a break))
-                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-4 py-2 sm:px-4 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div className="relative flex items-center gap-2 sm:gap-3">
-                      {isTimerActive ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                    <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
+                      {isTimerActive ? <Pause className="h-4 w-4 sm:h-4 sm:w-4" /> : <Play className="h-4 w-4 sm:h-4 sm:w-4" />} {/* Increased default icon size */}
                       {isTimerActive ? 'Pause' : (timeRemaining > 0 ? 'Resume' : 'Start')}
                     </div>
                   </button>
@@ -1271,11 +1273,11 @@ function App() {
                       }
                     }}
                     disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-7 py-3.5 sm:px-8 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 sm:px-4 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div className="relative flex items-center gap-2 sm:gap-3">
-                      <CheckCircle className="h-5 w-5" />
+                    <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
+                      <CheckCircle className="h-4 w-4 sm:h-4 sm:w-4" /> {/* Increased default icon size */}
                       {isBreakTime ? 'Skip Break' : 'Done!'}
                 </div>
                   </button>
@@ -1283,11 +1285,11 @@ function App() {
                   <button 
                     onClick={handleExtendTimer}
                     disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-3 py-2 sm:px-3 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div className="relative flex items-center gap-2 sm:gap-3">
-                      <Plus className="h-5 w-5" />
+                    <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
+                      <Plus className="h-4 w-4 sm:h-4 sm:w-4" /> {/* Increased default icon size */}
                     Extend
                 </div>
                   </button>
@@ -1296,7 +1298,7 @@ function App() {
           )}
 
           {activeView === 'plan' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 h-full">
                 <UICard className="lg:col-span-1 bg-gradient-to-br from-dark-100/90 to-dark-200/90 flex flex-col shadow-md hover:shadow-lg transition-all duration-500 border-0"> {/* Removed ring border, added border-0 */}
                   <UICardHeader className="py-3 border-b border-dark-300/25">
                     <UICardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">Plan Your Day</UICardTitle>
@@ -1401,8 +1403,8 @@ function App() {
                   <UICardHeader className="py-3 border-b border-dark-300/25">
                     <UICardTitle className="text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent to-brightAccent text-center">Today's Tasks</UICardTitle>
                   </UICardHeader>
-                  <UICardContent className="p-6">
-                    <div className="tall-task-list">
+                  <UICardContent className="p-6 flex-grow flex flex-col"> {/* Added flex-grow and flex-col */}
+                    <div className="tall-task-list flex flex-col flex-grow"> {/* Added flex flex-col flex-grow */}
                       <TaskListC 
                         className="task-list-override"
                         style={{ "--task-max-height": "400px" }} // CSS variable that will be used in TaskListC
