@@ -48,6 +48,7 @@ function TaskForm({ onAddTask }) {
                         onFocus={() => setIsFocused(prev => ({ ...prev, name: true }))}
                         onBlur={() => setIsFocused(prev => ({ ...prev, name: false }))}
                         className="bg-dark-200/60 border-dark-300/40 focus:ring-cyanAccent focus:border-cyanAccent text-sm pl-2.5 pr-2.5 py-1.5 rounded shadow-inner transition-all duration-300 hover:bg-dark-200/80 focus:bg-dark-200/90"
+                        autoComplete="off"
                     />
                 </div>
             </div>
@@ -69,6 +70,7 @@ function TaskForm({ onAddTask }) {
                         onFocus={() => setIsFocused(prev => ({ ...prev, duration: true }))}
                         onBlur={() => setIsFocused(prev => ({ ...prev, duration: false }))}
                         className="bg-dark-200/60 border-dark-300/40 focus:ring-cyanAccent focus:border-cyanAccent text-sm pl-2.5 pr-2.5 py-1.5 rounded shadow-inner transition-all duration-300 hover:bg-dark-200/80 focus:bg-dark-200/90"
+                        autoComplete="off"
                     />
                 </div>
             </div>

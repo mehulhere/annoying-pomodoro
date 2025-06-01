@@ -9,7 +9,7 @@ import confetti from 'canvas-confetti';
 import { PromptDialog } from './components/ui/PromptDialog';
 import SpiralForm from './components/SpiralForm';
 import SpiralList from './components/SpiralList';
-import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit, AlertTriangle, Globe } from 'lucide-react';
+import { Award, CheckCircle, Timer, Settings, Coffee, AlertCircle, Moon, Sun, Volume2, VolumeX, BrainCircuit, AlertTriangle, Globe, Clock } from 'lucide-react';
 // Spirals components will be added later
 
 // Different quote categories
@@ -103,7 +103,8 @@ function App() {
   const [breakDuration, setBreakDuration] = useState(5); // Default break duration in minutes
   const [allowExtendBreak, setAllowExtendBreak] = useState(true); // Default setting for extending breaks
   const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata'); // Default timezone
-
+  const [dailyResetTime, setDailyResetTime] = useState("00:00"); // Default daily reset time
+  
   // State for PromptDialog
   const [isPromptOpen, setIsPromptOpen] = useState(false);
   const [promptConfig, setPromptConfig] = useState({
@@ -120,6 +121,9 @@ function App() {
   const [activeView, setActiveView] = useState('focus'); // 'focus', 'plan', 'spirals', 'settings'
   const [sessionStartTime, setSessionStartTime] = useState(null); // Timestamp when the first task of the session started
   const [displayedIdleTime, setDisplayedIdleTime] = useState(0); // Idle time in seconds
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [lastResetTimestamp, setLastResetTimestamp] = useState(null);
+  const [customFinishTime, setCustomFinishTime] = useState(null); // e.g., "17:00" or null
 
   // Load settings from localStorage on initial render
   useEffect(() => {
@@ -128,25 +132,119 @@ function App() {
     const savedTheme = localStorage.getItem('theme');
     const savedBreakDuration = localStorage.getItem('breakDuration');
     const savedAllowExtendBreak = localStorage.getItem('allowExtendBreak');
-    const savedSelectedTimezone = localStorage.getItem('selectedTimezone');
+    const initialDailyResetTime = localStorage.getItem('dailyResetTime') || "00:00"; // Get saved or default
+    setDailyResetTime(initialDailyResetTime);
     
+    // Load other settings
     if (savedQuoteType) setQuoteType(savedQuoteType);
     if (savedSoundEnabled !== null) setSoundEnabled(savedSoundEnabled === 'true');
     if (savedTheme) setTheme(savedTheme);
     if (savedBreakDuration) setBreakDuration(parseInt(savedBreakDuration, 10));
     if (savedAllowExtendBreak !== null) setAllowExtendBreak(savedAllowExtendBreak === 'true');
-    if (savedSelectedTimezone) setSelectedTimezone(savedSelectedTimezone);
+
+    // --- Daily Reset Logic ---
+    const now = Date.now();
+    const [resetHour, resetMinute] = initialDailyResetTime.split(':').map(Number);
+    
+    const todayDateObj = new Date(now);
+    const todaysResetDateTime = new Date(todayDateObj.getFullYear(), todayDateObj.getMonth(), todayDateObj.getDate(), resetHour, resetMinute, 0, 0).getTime();
+    
+    const yesterdayDateObj = new Date(now);
+    yesterdayDateObj.setDate(yesterdayDateObj.getDate() - 1);
+    const yesterdaysResetDateTime = new Date(yesterdayDateObj.getFullYear(), yesterdayDateObj.getMonth(), yesterdayDateObj.getDate(), resetHour, resetMinute, 0, 0).getTime();
+
+    const savedLastResetTs = localStorage.getItem('lastResetTimestamp');
+    let currentLastResetTs = savedLastResetTs ? parseInt(savedLastResetTs, 10) : null;
+    let performReset = false;
+
+    if (currentLastResetTs === null) {
+      // First run or cleared storage. Establish baseline. States are already at defaults from useState.
+      currentLastResetTs = (now >= todaysResetDateTime) ? todaysResetDateTime : yesterdaysResetDateTime;
+      // No data state reset calls (like setTasks([])) needed here, useState did that.
+      // localStorage for these items will be updated by the save hook if they are new.
+    } else {
+      if (now >= todaysResetDateTime && currentLastResetTs < todaysResetDateTime) {
+        performReset = true;
+        currentLastResetTs = todaysResetDateTime; // Update to today's reset time
+      }
+    }
+    setLastResetTimestamp(currentLastResetTs); // Set state for lastResetTimestamp
+
+    // --- Load or Reset Data States ---
+    if (performReset) {
+      setTasks([]);
+      setScore(0);
+      setSessionStartTime(null);
+      setCurrentTaskIndex(-1);
+      setTimeRemaining(0);
+      setIsTimerActive(false);
+      setIsBreakTime(false);
+      // Spirals are NOT reset. Settings are NOT reset.
+      // The save useEffect will persist these new default values because isLoaded is still false.
+    } else {
+      // No reset due. Load data if it wasn't the very first run (i.e., savedLastResetTs was not null).
+      // If savedLastResetTs was null, it means it's effectively a first run for data, and useState defaults are appropriate.
+      if (savedLastResetTs) { 
+        const sTasks = localStorage.getItem('tasks');
+        if (sTasks) { try { setTasks(JSON.parse(sTasks)); } catch (e) { console.error("Error parsing tasks from localStorage", e); setTasks([]); } } else { setTasks([]); }
+        
+        const sScore = localStorage.getItem('score');
+        setScore(sScore ? (parseInt(sScore, 10) || 0) : 0);
+
+        const sSessionStart = localStorage.getItem('sessionStartTime');
+        setSessionStartTime(sSessionStart ? (parseInt(sSessionStart, 10) || null) : null);
+        
+        const sCurrentTaskIndex = localStorage.getItem('currentTaskIndex');
+        setCurrentTaskIndex(sCurrentTaskIndex ? (parseInt(sCurrentTaskIndex, 10) || -1) : -1);
+
+        const sTimeRemaining = localStorage.getItem('timeRemaining');
+        setTimeRemaining(sTimeRemaining ? (parseInt(sTimeRemaining, 10) || 0) : 0);
+
+        const sIsTimerActive = localStorage.getItem('isTimerActive');
+        setIsTimerActive(sIsTimerActive === 'true');
+
+        const sIsBreakTime = localStorage.getItem('isBreakTime');
+        setIsBreakTime(sIsBreakTime === 'true');
+      }
+    }
+
+    // Spirals are always loaded as they don't reset (or set to empty if not found)
+    const savedSpirals = localStorage.getItem('spirals');
+    if (savedSpirals) { try { setSpirals(JSON.parse(savedSpirals)); } catch (e) { console.error("Error parsing spirals from localStorage", e); setSpirals([]); } } else { setSpirals([]); }
+    
+    setIsLoaded(true); 
   }, []);
 
-  // Save settings to localStorage whenever they change
+  // Save settings and data to localStorage whenever they change
   useEffect(() => {
+    if (!isLoaded) return; 
+
     localStorage.setItem('quoteType', quoteType);
     localStorage.setItem('soundEnabled', soundEnabled.toString());
     localStorage.setItem('theme', theme);
     localStorage.setItem('breakDuration', breakDuration.toString());
     localStorage.setItem('allowExtendBreak', allowExtendBreak.toString());
-    localStorage.setItem('selectedTimezone', selectedTimezone);
-  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, selectedTimezone]);
+    localStorage.setItem('dailyResetTime', dailyResetTime); // Save new setting
+
+    if (lastResetTimestamp !== null) { // Save new setting state
+      localStorage.setItem('lastResetTimestamp', lastResetTimestamp.toString());
+    } else {
+      localStorage.removeItem('lastResetTimestamp');
+    }
+
+    try { localStorage.setItem('tasks', JSON.stringify(tasks)); } catch (e) { console.error("Error stringifying tasks for localStorage", e); }
+    try { localStorage.setItem('spirals', JSON.stringify(spirals)); } catch (e) { console.error("Error stringifying spirals for localStorage", e); }
+    localStorage.setItem('score', score.toString());
+    if (sessionStartTime !== null) localStorage.setItem('sessionStartTime', sessionStartTime.toString()); else localStorage.removeItem('sessionStartTime');
+    localStorage.setItem('currentTaskIndex', currentTaskIndex.toString());
+    localStorage.setItem('timeRemaining', timeRemaining.toString());
+    localStorage.setItem('isTimerActive', isTimerActive.toString());
+    localStorage.setItem('isBreakTime', isBreakTime.toString());
+  }, [
+    quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, // Added dailyResetTime
+    tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, 
+    isLoaded, lastResetTimestamp // customFinishTime is NOT persisted, so not added here
+  ]);
 
   // Apply theme class to body when it changes
   useEffect(() => {
@@ -166,7 +264,7 @@ function App() {
     // Notification permission request (runs once)
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission().then(permission => {
-        if (permission === "granted") console.log("Desktop notification permission granted.");
+        if (permission === "granted") console.error("Desktop notification permission granted.");
       });
     }
   }, []); // Empty dependency array: runs only on mount and unmount
@@ -189,7 +287,7 @@ function App() {
       notificationSound.current.currentTime = 0; // Reset sound to start
       notificationSound.current.play()
         .then(() => {
-          // console.log("Notification sound played successfully."); // Optional: for debugging
+          // console.error("Notification sound played successfully."); // Optional: for debugging
         })
         .catch(error => {
           console.error("Error playing sound:", error);
@@ -588,8 +686,6 @@ function App() {
   };
 
   const calculateDailyStats = useCallback(() => {
-    console.log("[Debug] calculateDailyStats called"); // General log to confirm function call
-
     const totalPlannedDuration = tasks.reduce((acc, task) => acc + task.estimatedDuration, 0); // in minutes
 
     let accumulatedFocusTimeSeconds = tasks.reduce((acc, task) => {
@@ -613,35 +709,47 @@ function App() {
 
     const now = new Date();
     let timeLeftTodayMinutes = 0;
-    try {
-      const currentHourInTZ = parseInt(now.toLocaleString('en-GB', { timeZone: selectedTimezone, hour: '2-digit', hour12: false }));
-      const currentMinuteInTZ = parseInt(now.toLocaleString('en-GB', { timeZone: selectedTimezone, minute: '2-digit' }));
-      const minutesPassedTodayInTZ = currentHourInTZ * 60 + currentMinuteInTZ;
-      const eodTargetMinutesInTZ = 24 * 60; // Changed from 18*60 (6 PM) to 24*60 (Midnight)
+    
+    // Determine the end time for P(Not Finishing) based on customFinishTime or dailyResetTime
+    let endOfTodayTargetTime;
+
+    if (customFinishTime) {
+      const [finishHour, finishMinute] = customFinishTime.split(':').map(Number);
+      const customEndTime = new Date(now);
+      customEndTime.setHours(finishHour, finishMinute, 0, 0);
       
-      if (minutesPassedTodayInTZ < eodTargetMinutesInTZ) {
-        timeLeftTodayMinutes = eodTargetMinutesInTZ - minutesPassedTodayInTZ;
-      } else {
-        timeLeftTodayMinutes = 0;
+      // If the custom time is in the past today, calculate until tomorrow's custom time
+      // This handles cases where the user sets a time like 9 AM, but it's already 10 AM
+      if (customEndTime.getTime() < now.getTime()) {
+           customEndTime.setDate(customEndTime.getDate() + 1);
       }
-    } catch (error) {
-      console.error("Error calculating time left in timezone:", error);
-      const localEOD = new Date();
-      localEOD.setHours(18,0,0,0);
-      const localMsLeft = localEOD.getTime() - now.getTime();
-      timeLeftTodayMinutes = Math.max(0, Math.floor(localMsLeft / (1000 * 60)));
+       endOfTodayTargetTime = customEndTime;
+
+    } else {
+      // Fallback to dailyResetTime if no custom finish time is set
+      const [resetHour, resetMinute] = dailyResetTime.split(':').map(Number);
+      const todayReset = new Date(now);
+      todayReset.setHours(resetHour, resetMinute, 0, 0);
+
+      const tomorrowReset = new Date(now);
+      tomorrowReset.setDate(tomorrowReset.getDate() + 1);
+      tomorrowReset.setHours(resetHour, resetMinute, 0, 0);
+
+      endOfTodayTargetTime = (now.getTime() < todayReset.getTime())
+        ? todayReset
+        : tomorrowReset;
     }
+
+    const localMsLeft = endOfTodayTargetTime.getTime() - now.getTime();
+    timeLeftTodayMinutes = Math.max(0, Math.floor(localMsLeft / (1000 * 60)));
 
     let probNotFinishingPercentage = 0;
 
     if (remainingUncompletedTaskMinutes === 0) {
       probNotFinishingPercentage = 0;
-      console.log("[Debug] P(Not Finishing): 0% (No remaining uncompleted tasks)");
     } else if (timeLeftTodayMinutes <= 0) {
       probNotFinishingPercentage = 100;
-      console.log("[Debug] P(Not Finishing): 100% (Time left today is 0 or less)");
     } else {
-      console.log("[Debug] P(Not Finishing): Calculating detailed probability...");
       const P_base_workload = Math.min(1, remainingUncompletedTaskMinutes / timeLeftTodayMinutes);
       
       const totalSessionTimeSeconds = accumulatedFocusTimeSeconds + displayedIdleTime;
@@ -653,17 +761,6 @@ function App() {
 
       const raw_probability = P_base_workload * inefficiency_penalty_multiplier;
       probNotFinishingPercentage = Math.min(100, Math.round(raw_probability * 100));
-
-      // Console logging for debugging the P(Not Finishing) formula
-      console.log("  Remaining Uncompleted Task Minutes:", remainingUncompletedTaskMinutes);
-      console.log("  Time Left Today Minutes (in TZ):", timeLeftTodayMinutes);
-      console.log("  P_base_workload (before penalty):", P_base_workload.toFixed(3));
-      console.log("  Accumulated Focus Seconds:", accumulatedFocusTimeSeconds);
-      console.log("  Displayed Idle Seconds:", displayedIdleTime);
-      console.log("  Total Session Seconds (Focus + Idle):", totalSessionTimeSeconds);
-      console.log("  Inefficiency Penalty Multiplier:", inefficiency_penalty_multiplier.toFixed(3));
-      console.log("  Raw Probability (P_base * Penalty Multiplier):", raw_probability.toFixed(3));
-      console.log("  Final P(Not Finishing)% (rounded & capped):", probNotFinishingPercentage);
     }
 
     return {
@@ -672,7 +769,7 @@ function App() {
       estimatedRemainingTaskTimeMinutes: remainingUncompletedTaskMinutes,
       probNotFinishing: probNotFinishingPercentage,
     };
-  }, [tasks, currentTaskIndex, timeRemaining, isBreakTime, selectedTimezone, displayedIdleTime]);
+  }, [tasks, currentTaskIndex, timeRemaining, isBreakTime, displayedIdleTime, dailyResetTime, customFinishTime]); // Added customFinishTime dependency
 
   const dailyStats = calculateDailyStats();
   const activeTaskObject = currentTaskIndex !== -1 && tasks[currentTaskIndex] ? tasks[currentTaskIndex] : null;
@@ -975,6 +1072,43 @@ function App() {
                         <span className='text-timerAccent font-semibold'>{dailyStats.probNotFinishing}%</span>
                       </div>
                     </div>
+
+                    {/* Custom Finish Time */}
+                    <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5">
+                      <h3 className="text-sm font-semibold text-cyanAccent mb-2">Custom Session End Time</h3>
+                      <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs">
+                         <div className="flex justify-between items-center mb-3">
+                            <div className="flex items-center">
+                                <Clock className="h-3.5 w-3.5 mr-1 text-cyanAccent" />
+                                <span className="font-medium text-xs md:text-sm">Set End Time</span>
+                            </div>
+                            <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
+                                {customFinishTime || 'Not Set'}
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-2">
+                            <input
+                                type="time"
+                                value={customFinishTime || ''}
+                                onChange={(e) => setCustomFinishTime(e.target.value)}
+                                className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent appearance-none"
+                                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }} // Ensures native time picker matches theme
+                             />
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setCustomFinishTime(null)}
+                                disabled={!customFinishTime}
+                                className="py-1 px-2 text-xs"
+                            >
+                                Clear
+                            </Button>
+                         </div>
+                         <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
+                            Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finish).
+                         </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -991,13 +1125,9 @@ function App() {
                           const currentTasks = tasks; 
                           const taskIndex = currentTasks.findIndex(t => t.id === taskId);
                           
-                          console.log('[App onStartTask] Attempting to start task:', 
-                              { taskId, taskIndex, currentTasksLength: currentTasks.length, 
-                                currentTasksIds: currentTasks.map(t => t.id) });
-
                           if (taskIndex !== -1) {
                               if (taskIndex < 0 || taskIndex >= currentTasks.length || !currentTasks[taskIndex]) {
-                                  console.error("[App onStartTask PRE-CHECK FAILED] taskIndex out of bounds for current tasks.", 
+                                  console.error("[App onStartTask] taskIndex out of bounds for current tasks.", 
                                       { taskId, taskIndex, currentTasksLength: currentTasks.length });
                                   toast({ 
                                       title: "Task Sync Issue", 
@@ -1233,6 +1363,29 @@ function App() {
                     </div>
                   </div>
 
+                  {/* Daily Reset Time Setting */}
+                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center">
+                        <Timer className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
+                        <span className="font-medium text-xs md:text-sm">Daily Reset Time</span>
+                      </div>
+                      <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
+                        {dailyResetTime}
+                      </div>
+                    </div>
+                    <input
+                      type="time"
+                      value={dailyResetTime}
+                      onChange={(e) => setDailyResetTime(e.target.value)}
+                      className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent appearance-none"
+                      style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }} // Ensures native time picker matches theme
+                    />
+                    <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
+                      Time at which tasks, score, and timers reset daily. Spirals are not affected.
+                    </div>
+                  </div>
+
                   {/* Timezone Setting */}
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
                     <div className="flex justify-between items-center mb-3">
@@ -1241,13 +1394,13 @@ function App() {
                         <span className="font-medium text-xs md:text-sm">Timezone</span>
                       </div>
                       <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
-                        {selectedTimezone.replace('_', ' ')}
+                        {/* selectedTimezone.replace('_', ' ') */}
+                         Removed
                       </div>
                     </div>
-                    <select
+                    {/* select
                       value={selectedTimezone}
-                      onChange={(e) => setSelectedTimezone(e.target.value)}
-                      className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent"
+                      onChange={(e) => setSelectedTimezone(e.target.value)}\n                      className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent"
                     >
                       <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
                       <option value="America/New_York">America/New York (ET)</option>
@@ -1258,7 +1411,7 @@ function App() {
                       <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
                       <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
                       <option value="UTC">UTC</option>
-                    </select>
+                    </select>*/}
                   </div>
                 </div>
               </CardContent>
@@ -1284,4 +1437,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
