@@ -527,7 +527,7 @@ function App() {
       setIsTimerActive(false); 
       toast({ title: isBreakTime ? "Break Paused" : "Timer Paused" });
     }
-  }, [isBreakTime, setIsTimerActive]); // Added setIsTimerActive
+  }, [isBreakTime, setIsTimerActive]); // Removed pauseNotificationSound
 
   const handleResumeTimer = useCallback(() => {
     if (!isTimerActive && timeRemaining > 0 && 
@@ -535,7 +535,7 @@ function App() {
        setIsTimerActive(true); 
        toast({ title: isBreakTime ? "Break Resumed" : "Timer Resumed" });
     }
-  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive]); // Added setIsTimerActive (no pauseNotificationSound used here)
+  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive]); 
 
   const handleTaskDone = useCallback(() => {
     if (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed) {
@@ -608,7 +608,7 @@ function App() {
     setCurrentTaskIndex(-1); 
     setIsTimerActive(true); 
     toast({title: "Break Time!", description: `Taking a ${breakDuration} minute break.`});
-  }, [tasks, currentTaskIndex, playNotificationSound, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive, focusCardRef, pauseNotificationSound]); // Added pauseNotificationSound
+  }, [tasks, currentTaskIndex, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive, focusCardRef, pauseNotificationSound]); // Removed playNotificationSound
 
   const handleSkipBreak = useCallback(() => {
     if (isBreakTime && isTimerActive) {
@@ -625,7 +625,7 @@ function App() {
     } else {
       toast({title: "No Active Break", description: "There is no active break to skip.", variant: "default"});
     }
-  }, [isBreakTime, isTimerActive, setIsTimerActive, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, pauseNotificationSound]); // Added pauseNotificationSound
+  }, [isBreakTime, isTimerActive, setIsTimerActive, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, pauseNotificationSound]);
 
   const handleExtendTimer = useCallback(() => {
     // If no task active AND not break time, nothing to extend
@@ -690,7 +690,64 @@ function App() {
       }
     });
     setIsPromptOpen(true); 
-  }, [currentTaskIndex, isBreakTime, isTimerActive, timeRemaining, tasks, allowExtendBreak, setPromptConfig, setTasks, setScore, setTimeRemaining, setIsTimerActive, pauseNotificationSound]); // Added pauseNotificationSound
+  }, [currentTaskIndex, isBreakTime, isTimerActive, timeRemaining, tasks, allowExtendBreak, setPromptConfig, setTasks, setScore, setTimeRemaining, setIsTimerActive, pauseNotificationSound]);
+
+  // Effect for Timer Countdown
+  useEffect(() => { 
+    if (isTimerActive && timeRemaining > 0) {
+      // If timer should be active and there's time, start the interval
+      timerIntervalId.current = setInterval(() => {
+        setTimeRemaining(prevTime => {
+          if (prevTime <= 1) { 
+            // Stop the interval first
+            if(timerIntervalId.current) clearInterval(timerIntervalId.current);
+            timerIntervalId.current = null;
+            setIsTimerActive(false); // Timer is no longer active
+            
+            if (isBreakTime) {
+              playNotificationSound();
+              showDesktopNotification("Break Over!", "Your break time is up.");
+              toast({ title: "Break Finished!", description: "Ready for the next task?" });
+              setIsBreakTime(false); // Break is over
+              setCurrentTaskIndex(-1); // No active task
+            } else if (currentTaskIndex !== -1 && tasks[currentTaskIndex]) {
+              const task = tasks[currentTaskIndex];
+              // Increment timeSpentSeconds one last time for the final second
+              setTasks(prevTasks => prevTasks.map((t, idx) => 
+                idx === currentTaskIndex ? {...t, timeSpentSeconds: (t.timeSpentSeconds || 0) + 1} : t
+              ));
+              playNotificationSound();
+              showDesktopNotification("Time's Up!", `Time for "${task.name}" is up.`);
+              toast({ title: "Time's Up!", description: `"${task.name}" timer finished. Mark done or extend.` });
+              // User needs to manually mark done or extend. isTimerActive is false.
+            }
+            return 0; // Time is up
+          }
+
+          // Increment timeSpentSeconds for active task during normal countdown
+          if (currentTaskIndex !== -1 && !isBreakTime && tasks[currentTaskIndex]) {
+            setTasks(prevTasks => prevTasks.map((task, idx) => 
+                idx === currentTaskIndex ? {...task, timeSpentSeconds: (task.timeSpentSeconds || 0) + 1} : task
+            ));
+          }
+          return prevTime - 1; // Countdown
+        });
+      }, 1000);
+    } else {
+      // If timer shouldn't be active or time is up, ensure interval is cleared
+      if (timerIntervalId.current) {
+        clearInterval(timerIntervalId.current);
+        timerIntervalId.current = null;
+      }
+    }
+    // Cleanup function: always clear interval when dependencies change or component unmounts
+    return () => {
+      if (timerIntervalId.current) {
+        clearInterval(timerIntervalId.current);
+        timerIntervalId.current = null; 
+      }
+    };
+  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration]); // Dependencies should be sufficient now.
 
   // Effect for Timer Countdown
   useEffect(() => { // Added missing dependencies
@@ -747,7 +804,7 @@ function App() {
         timerIntervalId.current = null; 
       }
     };
-  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration, pauseNotificationSound]); // Added pauseNotificationSound
+  }, [isTimerActive, timeRemaining, tasks, currentTaskIndex, isBreakTime, playNotificationSound, showDesktopNotification, setTasks, breakDuration]); // Removed duplicate showDesktopNotification
 
   // Effect for Idle Time Calculation
   useEffect(() => {
@@ -1235,7 +1292,6 @@ function App() {
                 </div>
                   </button>
                 </div>
-                {/* Animated Points Display - Removed */}
               </div>
           )}
 
