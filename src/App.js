@@ -463,27 +463,29 @@ function App() {
     }
 
     const task = tasks[currentTaskIndex];
-    let pointsEarnedThisTask = POINTS_PER_TASK;
+    let pointsEarnedThisTask = 0;
     
-    const timeWhenDone = task.timerStartTime ? (Date.now() - task.timerStartTime) / 1000 : task.timeSpentSeconds;
-    // For bonus calculation, actualTimeSpent should not exceed original estimated duration.
-    // If they finish early, actualTimeSpent will be less.
-    // If they finish late (timer ran out and they clicked done), it will be task.duration * 60 from the timer logic.
-    const actualTimeSpentForBonusCalc = Math.min(timeWhenDone, task.estimatedDuration * 60);
+    const timeWhenDoneSeconds = task.timerStartTime ? (Date.now() - task.timerStartTime) / 1000 : task.timeSpentSeconds;
+    const actualTimeSpentMinutes = Math.round(timeWhenDoneSeconds / 60); // Round to nearest minute for scoring
 
+    // Base score: 1 point per minute of focus time
+    pointsEarnedThisTask += actualTimeSpentMinutes;
+
+    // Bonus for finishing early: 1 point per minute saved
     const estimatedSeconds = task.estimatedDuration * 60;
-    if (estimatedSeconds > 0) {
-      const secondsSaved = Math.max(0, estimatedSeconds - actualTimeSpentForBonusCalc);
-      const percentageTimeSaved = secondsSaved / estimatedSeconds;
-      const bonus = Math.floor(percentageTimeSaved * MAX_TIME_SAVED_BONUS);
-      pointsEarnedThisTask += bonus;
-    }
+    const secondsSaved = Math.max(0, estimatedSeconds - timeWhenDoneSeconds);
+    const bonusMinutes = Math.round(secondsSaved / 60); // Round saved seconds to nearest minute
+    pointsEarnedThisTask += bonusMinutes;
+    
+    // Ensure score is not negative (shouldn't happen with this logic, but as a safeguard)
+    pointsEarnedThisTask = Math.max(0, pointsEarnedThisTask);
+
     setScore(prevScore => prevScore + pointsEarnedThisTask);
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
 
     // Use actualTimeSpent (which could be > estimated if they let timer run out and clicked done)
     // for the task's final timeSpentSeconds for record keeping.
-    const finalTimeSpentSeconds = timeWhenDone;
+    const finalTimeSpentSeconds = timeWhenDoneSeconds;
 
     setTasks(prevTasks => prevTasks.map((t, idx) =>
       idx === currentTaskIndex ? { 
@@ -1351,22 +1353,19 @@ function App() {
                         Enabled
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5 mt-2 text-[10px] md:text-xs">
+                    <div className="grid grid-cols-1 gap-1.5 mt-2 text-[10px] md:text-xs">
                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
-                        <span>Per Task:</span>
-                        <span className="text-cyanAccent">{POINTS_PER_TASK} pts</span>
+                        <span>Base Score:</span>
+                        <span className="text-cyanAccent">1 pt per minute focused</span>
                       </div>
                       <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
                         <span>Time Bonus:</span>
-                        <span className="text-cyanAccent">Up to {MAX_TIME_SAVED_BONUS} pts</span>
+                        <span className="text-cyanAccent">1 pt per minute saved</span>
                       </div>
-                      <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
-                        <span>Extension Penalty:</span>
-                        <span className="text-cyanAccent">-{POINTS_DEDUCTION_FOR_EXTENSION} pts</span>
-                      </div>
+                      {/* Removed Extension Penalty for simplicity with new scoring */}
                     </div>
                     <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
-                      Time bonus is scaled by the percentage of estimated time saved.
+                      Score is based on total minutes focused and minutes saved compared to estimated duration.
                     </div>
                   </div>
 
