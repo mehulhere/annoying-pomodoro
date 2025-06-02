@@ -103,4 +103,4 @@ Use the navigation bar on the left (or bottom on smaller screens) to switch betw
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details (Note: A `LICENSE.md` file might need to be created if it doesn't exist). 
+© 2025 Mehul Pahuja All Rights Reserved. 
