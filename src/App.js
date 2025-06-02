@@ -62,8 +62,6 @@ const quoteCategories = {
   ]
 };
 
-const POINTS_DEDUCTION_FOR_EXTENSION = 2; // Penalty for extending a task
-
 // Moved helper functions before their usage in useCallback hooks
 const formatTime = (totalSeconds) => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -803,8 +801,9 @@ function App() {
             setTasks(prevTasks => prevTasks.map((t, idx) =>
               idx === currentTaskIndex ? { ...t, duration: t.duration + extendMinutes, estimatedDuration: t.estimatedDuration + extendMinutes } : t
             ));
-            setScore(prevScore => prevScore - POINTS_DEDUCTION_FOR_EXTENSION);
-            toastDescription += ` Points: -${POINTS_DEDUCTION_FOR_EXTENSION}`;
+            // Deduct 1 point per minute extended for tasks
+            setScore(prevScore => prevScore - extendMinutes);
+            toastDescription += ` Points: -${extendMinutes}`; // Update toast message with actual deduction
           }
           
           if (!isTimerActive && newTimeRemaining > 0) {
@@ -1775,7 +1774,7 @@ function App() {
                       </div>
                        <div className="bg-dark-200/40 rounded p-1.5 flex justify-between items-center">
                         <span>Task Extension Penalty:</span>
-                        <span className="text-red-500">-{POINTS_DEDUCTION_FOR_EXTENSION} pts</span>
+                        <span className="text-red-500">1 pt per minute extended</span>
                       </div>
                     </div>
                     <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
