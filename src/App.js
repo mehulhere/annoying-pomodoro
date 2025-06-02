@@ -81,6 +81,49 @@ const formatDurationToHoursMinutes = (totalSecondsInput) => {
   return "0 min";
 };
 
+const tutorialSteps = [
+  {
+    title: "Welcome to <span class=\"text-orange-400\">Annoying</span> Pomodoro!", // Reverted title
+    content: "Let's take a quick tour. Click 'Next' to see how things work, or 'Skip' to start right away.", // Reverted content
+    // No targetView, app remains in its initial state (likely 'focus')
+  },
+  {
+    title: "1. Plan Your Day",
+    targetView: 'plan',
+    content: "This is the 'Plan' view. Here, you can add tasks with names and estimated durations. Take a look around, then click 'Next'."
+  },
+  {
+    title: "2. The Focus View",
+    targetView: 'focus',
+    content: "Here's your timer. Start tasks, using the 'Start' button, and control your session with 'Pause', 'Resume', and 'Done!'. Click 'Next'." // Updated introduction
+  },
+  {
+    title: "3. Quick Task Add",
+    targetView: 'focus', // Ensure we are still/back in focus view
+    content: "Still in the Focus view, spot the '+' button at the top-right. It's a shortcut to quickly add tasks without leaving your timer. Click 'Next'."
+  },
+  {
+    title: "4. Spirals for Ideas",
+    targetView: 'spirals',
+    content: "Use Spirals for ideas or tasks that pop up while you're focused. Jot them down here to deal with later. Click 'Next'." // Further cut down content
+  },
+  {
+    title: "5. Track Your Progress",
+    targetView: 'dashboard',
+    content: "This is the 'Stats' view. It shows your productivity dashboard with daily data. Click 'Next'."
+  },
+  {
+    title: "6. Settings",
+    targetView: 'settings',
+    content: "Welcome to 'Settings'. Here, you can customize themes, quote types, sounds, break times, and more. Click 'Next'."
+  },
+  {
+    title: "You're Ready!",
+    targetView: 'focus', // Ensure they land on focus view
+    content: "That's the overview! Click 'Finish' to begin. Remember, the goal is to be productively annoyed!"
+  }
+];
+
 function App() {
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 640); // Tailwind 'sm' breakpoint
@@ -134,12 +177,16 @@ function App() {
     placeholder: '',
   });
 
+  // Tutorial State
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [currentTutorialStep, setCurrentTutorialStep] = useState(0);
+
   const navItems = [
     { id: 'focus', label: 'Focus', icon: Timer, color: 'violet-500', activeColor: 'violet-500' },
     { id: 'plan', label: 'Plan', icon: ListChecks, color: 'emerald-500', activeColor: 'emerald-500' },
     { id: 'spirals', label: 'Spirals', icon: BrainCircuit, color: 'sky-400', activeColor: 'indigo-500' },
-    { id: 'settings', label: 'Settings', icon: SlidersHorizontal, color: 'slate-400', activeColor: 'gray-400' },
-    { id: 'dashboard', label: 'Stats', icon: PieChart, color: 'amber-500', activeColor: 'yellow-500' }
+    { id: 'dashboard', label: 'Stats', icon: PieChart, color: 'amber-500', activeColor: 'yellow-500' }, // Moved Stats/Dashboard up
+    { id: 'settings', label: 'Settings', icon: SlidersHorizontal, color: 'slate-400', activeColor: 'gray-400' } // Moved Settings down
   ];
 
   const getIconClass = useCallback((isActive, itemColor) => {
@@ -206,7 +253,15 @@ function App() {
   }, []);
 
   // Load settings from localStorage on initial render
-  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { 
+    // Check for tutorial flag
+    const hasSeenTutorial = localStorage.getItem('annoyingPomodoroTutorial_v1_seen');
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+      setCurrentTutorialStep(0);
+    } // else, tutorial has been seen, do nothing
+
+    // --- Original settings and daily reset logic continues below ---
     const savedQuoteType = localStorage.getItem('quoteType');
     const savedSoundEnabled = localStorage.getItem('soundEnabled');
     const savedTheme = localStorage.getItem('theme');
@@ -1021,6 +1076,40 @@ function App() {
     setShowQuote(prevShowQuote => !prevShowQuote);
   };
 
+  const handleNextTutorialStep = () => {
+    if (currentTutorialStep < tutorialSteps.length - 1) {
+      const nextStepIndex = currentTutorialStep + 1;
+      setCurrentTutorialStep(nextStepIndex); // Update step first
+
+      // Then, set the view for the NEW current step
+      const newCurrentStepConfig = tutorialSteps[nextStepIndex];
+      if (newCurrentStepConfig.targetView) {
+        setActiveView(newCurrentStepConfig.targetView);
+      }
+    }
+  };
+
+  const handlePrevTutorialStep = () => {
+    if (currentTutorialStep > 0) {
+      const prevStepIndex = currentTutorialStep - 1;
+      setCurrentTutorialStep(prevStepIndex); // Update step first
+
+      // Then, set the view for the NEW current step
+      const newCurrentStepConfig = tutorialSteps[prevStepIndex];
+      if (newCurrentStepConfig.targetView) {
+        setActiveView(newCurrentStepConfig.targetView);
+      }
+      // If no targetView (e.g. for the first 'Welcome' step when going back to it),
+      // the view will remain as it was from the step before it. This is generally fine.
+    }
+  };
+
+  const handleFinishTutorial = () => { // Renamed from handleSkipTutorial for clarity when it's the last step
+    setShowTutorial(false);
+    localStorage.setItem('annoyingPomodoroTutorial_v1_seen', 'true');
+    setActiveView('focus'); // Ensure they land on focus view
+  };
+
   // JSX will be in the next part
   return (
     <div 
@@ -1146,7 +1235,7 @@ function App() {
         {/* Main content area with side navigation */}
         <div className="flex flex-col sm:flex-row flex-grow overflow-hidden w-full gap-2 sm:gap-2 lg:gap-3"> {/* Reduced gap from sm:gap-3 lg:gap-5 */}
           {/* Side Navigation - Enhanced with modern styling */}
-          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[13.5vh] flex-shrink-0 justify-between"> {/* Reduced padding and gaps */}
+          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[13.5vh] flex-shrink-0 justify-between relative z-[100] bg-gray-900/50 sm:bg-transparent sm:dark:bg-transparent p-1 rounded-lg sm:p-0 sm:rounded-none"> {/* Added background for forced visibility and padding/rounding for mobile */}
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = activeView === item.id;
@@ -1176,7 +1265,7 @@ function App() {
         </div>
 
           {/* Main view area */}
-        <main className="flex-grow overflow-auto h-full m-1 sm:m-0"> {/* Added mt-4 for spacing when nav is at top */}
+        <main className="flex-grow overflow-auto h-full m-1 sm:m-0 relative z-0"> {/* Added z-0 */}
           {/* Content will be conditionally rendered here based on activeView */}
           {activeView === 'focus' && (
               <div 
@@ -1710,6 +1799,77 @@ function App() {
           
           {activeView === 'dashboard' && (
               <DashboardViewC />
+          )}
+
+          {/* Tutorial Modal - MOVED INSIDE MAIN and changed to absolute positioning */}
+          {showTutorial && tutorialSteps[currentTutorialStep] && (
+            <div className={`absolute z-50 bottom-4 right-4 animate-in fade-in duration-300`}> {/* Removed conditional positioning */}
+              <div className="bg-gray-800 border border-gray-700/80 p-6 rounded-xl shadow-2xl max-w-sm w-full flex flex-col space-y-4 text-white">
+                {/* Image and Title container - Conditional rendering */}
+                {currentTutorialStep === 0 ? (
+                  <div className="flex items-center space-x-3 mb-2"> {/* Added container div */}
+                    {/* Image of Annoying Tomato */}
+                    <img 
+                      src={`${process.env.PUBLIC_URL}/assets/annoyingTomato.png`} // Assuming the image is placed here
+                      alt="Annoying Tomato Character" 
+                      className="h-12 w-12 flex-shrink-0" // Adjust size as needed
+                    />
+                    {/* Tutorial Title - Use dangerouslySetInnerHTML only for step 0 */}
+                    <h2 
+                      className="text-xl font-bold text-cyanAccent" 
+                      dangerouslySetInnerHTML={{ __html: tutorialSteps[currentTutorialStep].title }}
+                    />
+                  </div>
+                ) : (
+                  // Normal title rendering for other steps
+                  <h2 className="text-xl font-bold text-cyanAccent mb-1">{tutorialSteps[currentTutorialStep].title}</h2>
+                )}
+                
+                {/* Tutorial Content */}
+                <p className="text-gray-300 leading-relaxed text-sm">{tutorialSteps[currentTutorialStep].content}</p>
+                
+                <div className="flex justify-between items-center pt-3 border-t border-gray-700/50">
+                  <UIButton 
+                    variant="outline"
+                    onClick={handleFinishTutorial} // Skip button always finishes/skips
+                    className="text-xs sm:text-sm"
+                  >
+                    Skip Tutorial
+                  </UIButton>
+                  <div className="flex space-x-2">
+                    {currentTutorialStep > 0 && (
+                      <UIButton 
+                        variant="outline"
+                        onClick={handlePrevTutorialStep}
+                        className="text-xs sm:text-sm"
+                      >
+                        Previous
+                      </UIButton>
+                    )}
+                    {currentTutorialStep < tutorialSteps.length - 1 ? (
+                      <UIButton 
+                        variant="default"
+                        onClick={handleNextTutorialStep}
+                        className="bg-cyanAccent hover:bg-cyanAccent/90 text-black text-xs sm:text-sm"
+                      >
+                        Next
+                      </UIButton>
+                    ) : (
+                      <UIButton 
+                        variant="default"
+                        onClick={handleFinishTutorial}
+                        className="bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm"
+                      >
+                        Finish
+                      </UIButton>
+                    )}
+                  </div>
+                </div>
+                <div className="text-center text-xs text-gray-500 pt-0 mt-0">
+                  Step {currentTutorialStep + 1} of {tutorialSteps.length}
+                </div>
+              </div>
+            </div>
           )}
         </main>
       </div>
