@@ -174,19 +174,38 @@ function App() {
 
   // Effect to handle viewport height and mobile view detection
   useEffect(() => {
-    const handleViewportUpdate = () => {
-      setViewportHeight(window.innerHeight);
-      setIsMobileView(window.innerWidth < 640);
+    const updateLayout = () => {
+      const newIsMobileView = window.innerWidth < 640;
+      setIsMobileView(newIsMobileView);
+
+      if (newIsMobileView) {
+        if (window.visualViewport) {
+          setViewportHeight(window.visualViewport.height);
+        } else {
+          setViewportHeight(window.innerHeight);
+        }
+      } else {
+        // For desktop, we don't need to set a fixed pixel height, h-screen works.
+      }
     };
 
-    handleViewportUpdate(); // Initial call
+    updateLayout(); // Initial call
 
-    window.addEventListener('resize', handleViewportUpdate);
-    window.addEventListener('orientationchange', handleViewportUpdate);
+    // Listen to visualViewport resize if available, otherwise fall back to window resize for mobile status
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateLayout);
+    } else {
+      window.addEventListener('resize', updateLayout); // Primarily for isMobileView check
+    }
+    window.addEventListener('orientationchange', updateLayout);
 
     return () => {
-      window.removeEventListener('resize', handleViewportUpdate);
-      window.removeEventListener('orientationchange', handleViewportUpdate);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateLayout);
+      } else {
+        window.removeEventListener('resize', updateLayout);
+      }
+      window.removeEventListener('orientationchange', updateLayout);
     };
   }, []);
 
@@ -1032,7 +1051,7 @@ function App() {
         <div className="mb-2 sm:mb-8 relative"> {/* Reduced margin on small screens */}
           {/* Container for Title and Apple/Quote, making it a flex row and relative for positioning context */}
           <div className="relative flex items-center justify-center mb-2 sm:mb-6"> {/* Reduced margin on small screens */}
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold flex gap-2"> {/* Smaller text on small screens */}
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold flex gap-2"> {/* Smaller text on small screens */}
               <span
                 className="bg-clip-text text-transparent"
                 style={{ backgroundImage: 'linear-gradient(90deg, #ff3b3b 0%, #ff8c00 100%)' }}
