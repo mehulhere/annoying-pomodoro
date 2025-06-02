@@ -1,6 +1,8 @@
+# Exit on error
+set -e
 npm run build
 
-cp -r build/* .
+sudo cp -r build/* .
 
 git add .
 # Add time too
