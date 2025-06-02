@@ -174,38 +174,31 @@ function App() {
 
   // Effect to handle viewport height and mobile view detection
   useEffect(() => {
-    const updateLayout = () => {
-      const newIsMobileView = window.innerWidth < 640;
-      setIsMobileView(newIsMobileView);
-
-      if (newIsMobileView) {
-        if (window.visualViewport) {
-          setViewportHeight(window.visualViewport.height);
-        } else {
-          setViewportHeight(window.innerHeight);
-        }
-      } else {
-        // For desktop, we don't need to set a fixed pixel height, h-screen works.
-      }
+    const updateIsMobileView = () => {
+      setIsMobileView(window.innerWidth < 640);
     };
 
-    updateLayout(); // Initial call
+    const updateViewportHeight = () => {
+      setViewportHeight(window.innerHeight);
+    };
 
-    // Listen to visualViewport resize if available, otherwise fall back to window resize for mobile status
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateLayout);
-    } else {
-      window.addEventListener('resize', updateLayout); // Primarily for isMobileView check
-    }
-    window.addEventListener('orientationchange', updateLayout);
+    // Initial setup
+    updateIsMobileView();
+    updateViewportHeight(); // Set initial height for mobile
+
+    // Update isMobileView on general resize
+    window.addEventListener('resize', updateIsMobileView);
+    
+    // Update both height and isMobileView on orientation change
+    const handleOrientationChange = () => {
+      updateIsMobileView();
+      updateViewportHeight();
+    };
+    window.addEventListener('orientationchange', handleOrientationChange);
 
     return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateLayout);
-      } else {
-        window.removeEventListener('resize', updateLayout);
-      }
-      window.removeEventListener('orientationchange', updateLayout);
+      window.removeEventListener('resize', updateIsMobileView);
+      window.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, []);
 
