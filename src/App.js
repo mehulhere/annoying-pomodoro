@@ -1198,7 +1198,7 @@ function App() {
           </div>
         
           {/* Stats Grid - This is the existing stats display from your file */}
-          <div className="mt-2 sm:mt-4 pt-1 sm:pt-2 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-2 sm:gap-3 lg:gap-4"> {/* Reduced spacing */}
+          <div className="mt-2 sm:mt-4 pt-1 sm:pt-2 lg:pt-6 xl:pt-8 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-2 sm:gap-3 lg:gap-4"> {/* Added large and extra large top padding, Reduced spacing */}
           <div className="flex flex-col items-center group">
               <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium"> {/* Smaller text */}
                 <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-cyanAccent transition-transform duration-300 group-hover:scale-110" /> {/* Smaller icon */}
@@ -1239,7 +1239,26 @@ function App() {
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-amber-500/10 blur-md rounded-full"></div>
-                <span className="relative z-10 text-amber-500 font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-amber-400 px-2 sm:px-3">{formatDurationToHoursMinutes(displayedIdleTime)}</span>
+                <span className="relative z-10 text-amber-500 font-bold text-lg sm:text-xl md:text-2xl transition-all duration-300 group-hover:text-amber-400 px-2 sm:px-3 flex flex-wrap justify-center">{/* Added flex flex-wrap */}
+                  {(() => {
+                    const totalSeconds = Math.floor(displayedIdleTime);
+                    if (isNaN(totalSeconds) || totalSeconds < 0 || totalSeconds === 0) return "0 min";
+                    
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    
+                    if (hours > 0) {
+                      return (
+                        <>
+                          <span className="whitespace-nowrap">{hours} hour{hours > 1 ? 's' : ''}</span>
+                          <span className="whitespace-nowrap ml-1">{minutes} min</span>{/* Added ml-1 for spacing */}
+                        </>
+                      );
+                    } else {
+                      return <span className="whitespace-nowrap">{minutes} min</span>;
+                    }
+                  })()}
+                </span>
           </div>
             </div>
             
@@ -1279,8 +1298,8 @@ function App() {
                   // For specific colors like cyanAccent, you might need to map them to RGB if not directly usable in rgba()
                 >
                   <IconComponent className={`${item.id === 'focus' || item.id === 'plan' ? 
-                    `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[1.8em] lg:w-[1.8em]` : 
-                    `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[1.5em] lg:w-[1.5em]`
+                    `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[2em] lg:w-[2em] xl:h-[2.2em] xl:w-[2.2em]` : 
+                    `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[1.6em] lg:w-[1.6em] xl:h-[1.75em] xl:w-[1.75em]`
                   } mb-1 md:mb-1.5 sm:mb-2 lg:mb-2 ${getIconClass(isActive, item.color)}`} />
                   <span className={`${isActive ? 'font-semibold text-lightText' : 'text-subtleText/90'} truncate`}>{item.label}</span>
                 </UIButton>
@@ -1298,7 +1317,7 @@ function App() {
               > 
                 {/* Quick Task shortcut */}
                 {isQuickTaskEnabled && (
-                  <div className={`absolute ${isExtraSmallScreen ? 'bottom-0 right-0' : 'bottom-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5`}> {/* Adjusted top position for mobile, conditional rendering */}
+                  <div className={`absolute ${isExtraSmallScreen ? 'top-0 right-2' : 'top-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5`}> {/* Adjusted top position for mobile, conditional rendering */}
                     <TaskShortcut onAddTask={handleAddTask} isMobileView={isMobileView} /> {/* Pass isMobileView prop */}
                   </div>
                 )}
@@ -1391,7 +1410,7 @@ function App() {
                          </div>
                       )}
                         {!isTimerActive && timeRemaining === 0 && currentTaskIndex === -1 && (
-                          <div className="mt-1 text-sm sm:text-[0.82rem] tracking-widest text-gray-400 uppercase text-center animate-pulse">
+                          <div className={`mt-1 ${isExtraSmallScreen ? 'text-xs' : 'text-sm'} sm:text-[1rem] tracking-widest text-gray-400 uppercase text-center animate-pulse`}>
                             CLOCKS TICKING...
                             <br />
                             NOT YOURS
@@ -1402,15 +1421,15 @@ function App() {
                 </div>
                 
                 {/* Control Buttons */}
-                <div className="flex justify-center gap-2 sm:gap-4 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2"> {/* Increased default pb, Added mb-4 sm:mb-0, Increased sm:gap */}
+                <div className="flex justify-center gap-2 sm:gap-4 lg:gap-5 xl:gap-5 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2"> {/* Increased gap for large breakpoints, Increased default pb, Added mb-4 sm:mb-0 */}
                   <button
                     onClick={handleMasterPlayPause}
                     disabled={isTimerActive ? false : (!tasks.some(task => !task.completed) && (!isBreakTime || timeRemaining === 0))}
-                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-2 sm:py-3 lg:py-4 xl:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px] flex-shrink-0 flex items-center justify-center"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
-                      {isTimerActive ? <Pause className="h-4 w-4 sm:h-4 sm:w-4" /> : <Play className="h-4 w-4 sm:h-4 sm:w-4" />} {/* Increased default icon size */}
+                      {isTimerActive ? <Pause className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" /> : <Play className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" />} {/* Increased default and xl icon size */}
                       {isTimerActive ? 'Pause' : (timeRemaining > 0 ? 'Resume' : 'Start')}
                     </div>
                   </button>
@@ -1425,11 +1444,11 @@ function App() {
                       }
                     }}
                     disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-2 sm:py-3 lg:py-4 xl:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px] flex-shrink-0 flex items-center justify-center text-center"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
-                      <CheckCircle className="h-4 w-4 sm:h-4 sm:w-4" /> {/* Increased default icon size */}
+                      <CheckCircle className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" /> {/* Increased default and xl icon size */}
                       {isBreakTime ? 'Skip Break' : 'Done!'}
                 </div>
                   </button>
@@ -1437,11 +1456,11 @@ function App() {
                   <button 
                     onClick={handleExtendTimer}
                     disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white py-2 sm:py-3 lg:py-4 xl:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px] flex-shrink-0 flex items-center justify-center text-center"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
-                      <Plus className="h-4 w-4 sm:h-4 sm:w-4" /> {/* Increased default icon size */}
+                      <Plus className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" /> {/* Increased default and xl icon size */}
                     Extend
                 </div>
                   </button>
@@ -1639,14 +1658,14 @@ function App() {
                       </div>
                       <div className="flex items-center gap-1.5 bg-dark-200/80 rounded-full p-0.5">
                         <button 
-                          className={`${theme === 'dark' ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                          className={`${theme === 'dark' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setTheme('dark')}
                         >
                           <Moon className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
                           Dark
                         </button>
                         <button 
-                          className={`${theme === 'light' ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                          className={`${theme === 'light' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setTheme('light')}
                         >
                           <Sun className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
@@ -1689,13 +1708,13 @@ function App() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button 
-                          className={`${soundEnabled ? 'bg-dark-200/80 text-white' : 'bg-dark-200/30 text-subtleText opacity-60'} hover:bg-dark-300/80 transition-colors rounded-full p-1 md:p-1.5`}
+                          className={`${soundEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setSoundEnabled(true)}
                         >
                           <Volume2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                         </button>
                         <button 
-                          className={`${!soundEnabled ? 'bg-dark-200/80 text-white' : 'bg-dark-200/30 text-subtleText opacity-60'} hover:bg-dark-300/80 transition-colors rounded-full p-1 md:p-1.5`}
+                          className={`${!soundEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setSoundEnabled(false)}
                         >
                           <VolumeX className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -1713,13 +1732,13 @@ function App() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button 
-                          className={`${allowExtendBreak ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                          className={`${allowExtendBreak ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setAllowExtendBreak(true)}
                         >
                           Yes
                         </button>
                         <button 
-                          className={`${!allowExtendBreak ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                          className={`${!allowExtendBreak ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                           onClick={() => setAllowExtendBreak(false)}
                         >
                           No
@@ -1812,37 +1831,39 @@ function App() {
                     <div className="flex items-center mb-3">
                       <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
                       <span className="font-medium text-xs md:text-sm">App Controls</span>
-                    </div>
-                    {/* Restart Tutorial Button */}
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-subtleText text-xs md:text-sm">Restart Tutorial:</span>
-                      <UIButton
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRestartTutorial}
-                        className="py-1 px-2 text-xs md:text-sm"
-                      >
-                        Restart
-                      </UIButton>
-                    </div>
-                    {/* Quick Task Button Toggle */}
-                    <div className="flex justify-between items-center">
+                      </div>
+                      {/* Quick Task Button Toggle */}
+                    <div className="flex justify-between items-center mb-1">
                        <span className="text-subtleText text-xs md:text-sm">Quick Task Button:</span>
                        <div className="flex items-center gap-1.5">
                          <button 
-                           className={`${isQuickTaskEnabled ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                           className={`${isQuickTaskEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-2 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                            onClick={() => setIsQuickTaskEnabled(true)}
                          >
                            Enabled
                          </button>
                          <button 
-                           className={`${!isQuickTaskEnabled ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                           className={`${!isQuickTaskEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-2 text-[10px] md:text-xs flex items-center transition-all duration-300`}
                            onClick={() => setIsQuickTaskEnabled(false)}
                          >
                            Disabled
                          </button>
                        </div>
                     </div>
+                    {/* Restart Tutorial Button */}
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-subtleText text-xs md:text-sm">Tutorial</span>
+                      </div>
+                      <button 
+                        className="w-full bg-gradient-to-r from-blue-600/80 to-cyan-600/80 hover:from-blue-500/90 hover:to-cyan-500/90 text-white py-1.5 rounded-md text-xs md:text-sm font-medium transition-all duration-300 flex items-center justify-center gap-1.5"
+
+                        onClick={handleRestartTutorial}
+                      >
+                        <Play className="h-3.5 w-3.5" /> Restart Tutorial
+                      </button>
+                    </div>
+
                   </div>
 
                   {/* About Section */}
@@ -1852,7 +1873,7 @@ function App() {
                       <span className="font-medium text-xs md:text-sm">About</span>
                     </div>
                     <div className="text-[10px] md:text-xs text-subtleText/80">
-                      Annoying Pomodoro v0.2
+                      Annoying Pomodoro v0.3
                     </div>
                   </div>
 

@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/annoyingpomodoro/static/css/main.9df14071.css",
+    "main.js": "/annoyingpomodoro/static/js/main.50ef8a6c.js",
+    "index.html": "/annoyingpomodoro/index.html",
+    "main.9df14071.css.map": "/annoyingpomodoro/static/css/main.9df14071.css.map",
+    "main.50ef8a6c.js.map": "/annoyingpomodoro/static/js/main.50ef8a6c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9df14071.css",
+    "static/js/main.50ef8a6c.js"
+  ]
+}
