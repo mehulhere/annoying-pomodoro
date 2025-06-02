@@ -1643,7 +1643,7 @@ function App() {
                     onClick={handleMasterPlayPause}
                     disabled={isTimerActive ? false : (!tasks.some(task => !task.completed) && (!isBreakTime || timeRemaining === 0))}
                     className={`group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center
-                      ${viewportHeight < 780
+                      ${viewportHeight < 780 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
                         : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
@@ -1651,12 +1651,12 @@ function App() {
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className={`relative flex items-center
-                      ${viewportHeight < 780 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                      ${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
                     `}> {/* Increased default gap */}
                       {isTimerActive ?
-                        <Pause className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
+                        <Pause className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
                         :
-                        <Play className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
+                        <Play className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
                       } {/* Increased default and xl icon size */}
                       {isTimerActive ? 'Pause' : (timeRemaining > 0 ? 'Resume' : 'Start')}
                     </div>
@@ -1673,7 +1673,7 @@ function App() {
                     }}
                     disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
                     className={`group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
-                      ${viewportHeight < 780
+                      ${viewportHeight < 780 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
                         : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
@@ -1681,9 +1681,9 @@ function App() {
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className={`relative flex items-center
-                      ${viewportHeight < 780 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                      ${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
                     `}> {/* Increased default gap */}
-                      <CheckCircle className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
+                      <CheckCircle className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
                       {isBreakTime ? 'Skip Break' : 'Done!'}
                 </div>
                   </button>
@@ -1692,7 +1692,7 @@ function App() {
                     onClick={handleExtendTimer}
                     disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
                      className={`group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
-                       ${viewportHeight < 780
+                       ${viewportHeight < 780 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
                         : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
@@ -1700,9 +1700,9 @@ function App() {
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className={`relative flex items-center
-                      ${viewportHeight < 780 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                      ${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
                     `}> {/* Increased default gap */}
-                      <Plus className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
+                      <Plus className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
                     Extend
                 </div>
                   </button>
