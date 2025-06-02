@@ -16,49 +16,225 @@ import TaskShortcut from './components/TaskShortcut'; // New component for quick
 
 // Different quote categories
 const quoteCategories = {
-  nagging: [
-    "You won't be able to do it... Prove me wrong!",
-    "Don't disappoint future you.",
-  "Less scrolling, more doing!",
-    "That task isn't going to complete itself.",
-  "Are you a talker or a doer?",
-  "Time is ticking. Are you?",
-  "Stop procrastinating. Start dominating.",
-  "Is this the best use of your time right now?",
-    "The clock is your boss. Don't get fired."
+  Annoying: [
+    "Are you still sitting there? Your tasks are collecting dust!",
+    "Hello? Your to-do list is screaming for attention!",
+    "Stop staring at the screen—your work isn't going to do itself!",
+    "Tick-tock, time's running out while you do… nothing!",
+    "Your tasks are piling up, and they're not happy about it!",
+    "Seriously, are you glued to that chair? Move already!",
+    "Your procrastination is making your to-do list cry!",
+    "Yo, your deadlines are waving at you. Wave back with action!",
+    "What's that? Another minute wasted? Keep it up, champ!",
+    "Your tasks are begging for mercy. Give them some attention!",
+    "Oh, look, another second of doing zilch. Impressive!",
+    "Your to-do list is judging you right now. Just saying.",
+    "Still not working? Your tasks are forming a protest!",
+    "Hey, your goals called. They're tired of waiting!",
+    "You're really committed to this \"do nothing\" vibe, huh?",
+    "Your work is tapping its foot impatiently. Get to it!",
+    "Procrastination called; it says you're its MVP!",
+    "Your tasks are staging a sit-in until you start!",
+    "What's the hold-up? Your to-do list is getting cranky!",
+    "Are you practicing for the World Procrastination Championships?"
   ],
-  rude: [
-    "Are you actually going to finish this time?",
-    "Your procrastination is impressive, really.",
-    "Oh look, another task you'll abandon.",
-    "Half-finished tasks won't impress anyone.",
-    "You call that productivity? I've seen snails move faster.",
-    "Your to-do list is laughing at you right now.",
-    "Great, another project for your 'abandoned' collection.",
-    "Are you even trying at this point?",
-    "Your focus is as stable as a house of cards."
+  Motivational: [
+    "Every step you take now brings you closer to crushing it!",
+    "You've got this—start now and watch success unfold!",
+    "One task at a time, and you'll conquer the world!",
+    "Your dreams are waiting. Start working to meet them!",
+    "Small actions today lead to massive wins tomorrow!",
+    "You're a powerhouse—unleash your productivity!",
+    "Keep going; every effort builds your empire!",
+    "Start now, and future you will thank you big time!",
+    "You're unstoppable when you put your mind to it!",
+    "Each task you tackle is a victory in the making!",
+    "Rise up and make today your masterpiece!",
+    "Your potential is limitless—start tapping into it!",
+    "One Pomodoro at a time, you're building greatness!",
+    "Seize this moment—your success story starts now!",
+    "You're stronger than procrastination. Prove it!",
+    "Every task completed is a step toward your goals!",
+    "Shine bright—your hard work lights the way!",
+    "You're on the path to greatness. Keep moving!",
+    "Turn your to-do list into a done list—start now!",
+    "The world is waiting for your brilliance. Get to work!"
   ],
-  annoying: [
-    "Tick tock! Time is passing! Tick tock!",
-    "Hey! Hey! Hey! You should be working!",
-    "Don't stop! Keep going! Don't stop! Keep going!",
-    "Are you distracted yet? How about now? Now?",
-    "This won't complete itself! This won't complete itself!",
-    "Focus! Focus! Focus! Are you focused yet?",
-    "Hey, remember that deadline? It's coming! Coming! Coming!",
-    "Still working? Still working? Still working?",
-    "Did you finish yet? No? How about now? Now? Now?"
+  Nagging: [
+    "Come on, you know you should've started that task already. Let's go!",
+    "Really? Still not working? Don't make me ask again!",
+    "You're not actually going to ignore that task, are you?",
+    "Hey, your to-do list isn't going to check itself off!",
+    "I'm not leaving until you start that task. Chop-chop!",
+    "You've been \"about to start\" for ages. Now, please!",
+    "Don't make your deadlines beg—get moving already!",
+    "You're better than this procrastination nonsense. Start!",
+    "What's the hold-up? Your tasks need you now!",
+    "Stop dilly-dallying—your work is waiting!",
+    "You're not fooling anyone with that \"I'll do it later\" excuse!",
+    "Come on, don't keep your to-do list hanging!",
+    "You know you'll feel better once you start. So, start!",
+    "Your tasks are getting lonely. Give them some love!",
+    "I'm going to keep bugging you until you work. Ready?",
+    "Don't make me nag again—start that task already!",
+    "Your goals are counting on you. Don't let them down!",
+    "Seriously, get to work before I start repeating myself!",
+    "You're not that busy scrolling. Start your tasks!",
+    "I'll wait… but your deadlines won't. Get going!"
   ],
-  abusive: [
-    "Your productivity is an absolute joke.",
-    "Even a child could finish this faster than you.",
-    "Pathetic effort as usual.",
-    "You'll never amount to anything at this rate.",
-    "Everyone else finished hours ago. What's your excuse?",
-    "Failure is your only consistent achievement.",
-    "No wonder nobody takes your work seriously.",
-    "This is why you're always behind everyone else.",
-    "Your lack of discipline is embarrassing."
+  Rude: [
+    "Wow, nice job doing nothing. Want a medal for that?",
+    "Your to-do list called. It's embarrassed for you.",
+    "Are you allergic to work or just lazy today?",
+    "Great, another masterpiece of procrastination. Bravo!",
+    "Your tasks are laughing at your lack of effort.",
+    "What's that? You're still not working? Pathetic.",
+    "Congrats on mastering the art of doing zilch!",
+    "Your deadlines are rolling their eyes at you.",
+    "Keep slacking, and your goals will ghost you.",
+    "Oh, you're so busy doing nothing. Impressive.",
+    "Your to-do list is judging you harder than I am.",
+    "Nice try, but scrolling isn't a personality trait.",
+    "Your work's waiting, but I guess you're too cool for it.",
+    "Procrastination looks good on you. Not.",
+    "Your tasks are begging, but you're ignoring them. Classy.",
+    "What's the plan? Avoid work forever? Bold move.",
+    "Your goals are crying, and you're just chilling. Nice.",
+    "Keep stalling, and you'll win at losing.",
+    "Your to-do list is unimpressed with your excuses.",
+    "Doing nothing isn't a flex. Get to work already!"
+  ],
+  Sarcastic: [
+    "Oh, sure, scrolling social media is definitely getting you closer to your goals.",
+    "Brilliant plan—ignore your tasks, and they'll vanish!",
+    "Wow, you're killing it at… absolutely nothing.",
+    "Procrastination? Nailed it. Productivity? Not so much.",
+    "Keep refreshing that feed; it's totally productive.",
+    "Your to-do list loves being ignored. Great job!",
+    "Oh, you're \"thinking about starting\"? How noble.",
+    "Sure, take your time. Deadlines are just suggestions.",
+    "Scrolling is basically the same as working, right?",
+    "Your tasks are thrilled to be on the back burner.",
+    "Amazing how you make doing nothing look so busy.",
+    "Bet your goals are proud of all this… inaction.",
+    "Keep stalling—world records don't set themselves!",
+    "Oh, you'll start \"soon\"? That's adorable.",
+    "Your to-do list is so impressed by your nap skills.",
+    "Sure, keep scrolling. That's how legends are made.",
+    "Procrastination champion of the year, anyone?",
+    "Your tasks are loving this quality neglect time.",
+    "Wow, you're really committed to not starting.",
+    "Bet you're setting a personal best for doing nada."
+  ],
+  OverlyDramatic: [
+    "The fate of your to-do list hangs in the balance! Will you rise or fall?",
+    "Behold! Your tasks await a hero—will it be you?",
+    "The clock ticks like a doomsday device. Act now!",
+    "Your deadlines loom like a storm on the horizon!",
+    "The world trembles as your tasks remain undone!",
+    "Arise, brave soul, and conquer your to-do list!",
+    "Your goals weep in the shadows of your inaction!",
+    "The epic saga of your productivity begins… NOW!",
+    "A dark cloud of procrastination threatens your destiny!",
+    "Your tasks are a dragon to slay. Draw your sword!",
+    "The universe demands your action. Will you answer?",
+    "Your to-do list is a battlefield—charge into glory!",
+    "Time is a thief, stealing your dreams. Fight back!",
+    "The gods of productivity watch. Don't disappoint!",
+    "Your tasks cry out for a champion. Step up!",
+    "A tidal wave of deadlines approaches. Act or drown!",
+    "Your legacy hangs on this moment. Seize it!",
+    "The cosmos pauses, awaiting your next move!",
+    "Your to-do list is an epic quest. Embark now!",
+    "The hour is nigh—save your goals from oblivion!"
+  ],
+  GuiltTripping: [
+    "Your future self is begging you to start now. Don't let them down.",
+    "Think of all the people counting on you. Get moving!",
+    "Your goals are sad, wondering why you've abandoned them.",
+    "Don't make your dreams wait—they deserve better.",
+    "Every minute you waste is a minute your future regrets.",
+    "Your team is relying on you. Don't drop the ball!",
+    "Imagine how proud you'll be if you start now.",
+    "Your to-do list feels neglected. Show it some love!",
+    "Don't let procrastination steal your potential.",
+    "Your future self is shaking their head right now.",
+    "Those tasks are counting on you. Don't disappoint!",
+    "You're better than this. Prove it to yourself!",
+    "Your dreams are fading with every second you stall.",
+    "Don't make your goals cry harder than they already are.",
+    "Someone out there believes in you. Don't let them down.",
+    "Your to-do list is lonely without your attention.",
+    "Think of the progress you're missing. Start now!",
+    "Your future is watching—make it proud!",
+    "Don't let your hard work so far go to waste.",
+    "Your goals deserve your effort. Give it to them!"
+  ],
+  CheerfullyAnnoying: [
+    "Yay! Another minute of not working! Let's make today AWESOME and start, okay?",
+    "Woo-hoo! You're so close to starting! Let's do this!",
+    "Hooray! Your tasks are SO excited for you to begin!",
+    "Let's make today SUPER productive! Start now, please!",
+    "Oh my gosh, you're gonna rock this! Start already!",
+    "Yippee! Your to-do list is cheering for you! Go, go, go!",
+    "You're a star! Shine bright by starting your tasks!",
+    "Woo! Let's make magic happen with your to-do list!",
+    "Your tasks are doing a happy dance! Join them!",
+    "Yay, you're SO ready to crush it! Start now!",
+    "Oh boy, your goals are SO pumped for you! Let's go!",
+    "Hooray! Time to be a productivity superhero!",
+    "You're AMAZING! Let's get those tasks done, yay!",
+    "Woo-hoo! Your to-do list is ready for some love!",
+    "Let's make today the BEST day by starting now!",
+    "Your tasks are SO excited, they can't wait! Go!",
+    "Yay! You're one step away from being awesome!",
+    "Oh, happy day! Let's tackle those tasks together!",
+    "You're a ROCKSTAR! Start shining with your work!",
+    "Woo! Let's make your to-do list smile today!"
+  ],
+  Quotable: [
+    "As Confucius might say, \"A journey of a thousand tasks begins with one Pomodoro.\"",
+    "\"Do or do not. There is no try,\" said Yoda. So, start!",
+    "Per Aristotle: \"We are what we repeatedly do. Start now!\"",
+    "\"The only way to do great work is to love what you do.\" – Steve Jobs. Begin!",
+    "As Einstein might note, \"Time is relative, but your deadlines aren't.\"",
+    "\"Seize the day!\" – Horace. Your tasks await!",
+    "\"The future depends on what you do today.\" – Gandhi. Act now!",
+    "Per da Vinci: \"It's easier to act than to wish.\" Get to it!",
+    "\"You miss 100% of the shots you don't take.\" – Wayne Gretzky. Start!",
+    "As Plato might say, \"Begin, and the task is half done.\"",
+    "\"Action is the foundational key to success.\" – Picasso. Move!",
+    "\"The best time to plant a tree was 20 years ago. The second best is now.\" – Proverb.",
+    "\"Don't wait for opportunity. Create it.\" – George Bernard Shaw.",
+    "As Churchill might urge, \"Keep calm and start your tasks!\"",
+    "\"A goal without a plan is just a wish.\" – Antoine de Saint-Exupéry. Act!",
+    "\"Success is the sum of small efforts.\" – Robert Collier. Begin now!",
+    "\"It always seems impossible until it's done.\" – Nelson Mandela. Start!",
+    "As Socrates might say, \"Know thyself, and know thy tasks!\"",
+    "\"The secret of getting ahead is getting started.\" – Mark Twain.",
+    "\"You don't have to be great to start, but you have to start to be great.\" – Zig Ziglar."
+  ],
+  Geeky: [
+    "Channel your inner Jedi and force those tasks into submission!",
+    "Your to-do list is a dungeon boss. Time to grind!",
+    "Debug your procrastination—run the productivity script now!",
+    "Like Mario, grab that power-up and smash your tasks!",
+    "Your tasks are a glitch in the Matrix. Fix them!",
+    "Beam up your productivity, Captain—tasks await!",
+    "Your to-do list is a raid boss. Assemble and attack!",
+    "Code your success: start with while (tasks > 0) { work(); }!",
+    "Like Link, draw your sword and slay that to-do list!",
+    "Your deadlines are incoming Klingons. Fire torpedoes!",
+    "Level up your life—start questing through your tasks!",
+    "Your to-do list is a Dark Souls boss. Git gud!",
+    "Hack your procrastination with a Pomodoro power-up!",
+    "Like Tony Stark, suit up and tackle your tasks!",
+    "Your goals are the One Ring. Forge them in action!",
+    "Reboot your productivity—your tasks need an update!",
+    "Your to-do list is a Pokémon. Catch it with effort!",
+    "Like Spider-Man, swing into action and web those tasks!",
+    "Overclock your brain—process those tasks now!",
+    "Your work is a TARDIS—step in and make time work for you!"
   ]
 };
 
@@ -88,22 +264,22 @@ const tutorialSteps = [
   {
     title: "1. Plan Your Day",
     targetView: 'plan',
-    content: "This is the 'Plan' view. Here, you can add tasks with names and estimated durations. Take a look around, then click 'Next'."
+    content: "This is the 'Plan' view. Here, you can add tasks with names and estimated durations. Take a look around!"
   },
   {
     title: "2. The Focus View",
     targetView: 'focus',
-    content: "Here's your timer. Start tasks, using the 'Start' button, and control your session with 'Pause', 'Resume', and 'Done!'. Click 'Next'." // Updated introduction
+    content: "Here's your timer. Start tasks, using the <span class=\"bg-blue-600/30 px-1 rounded\">Start</span> button, and control your session with <span class=\"bg-blue-600/30 px-1 rounded\">Pause</span>, <span class=\"bg-amber-600/30 px-1 rounded\">Extend</span>, and <span class=\"bg-green-600/30 px-1 rounded\">Done!</span>."
   },
   {
-    title: "3. Quick Task Add",
+    title: "3. Quick Add Task",
     targetView: 'focus', // Ensure we are still/back in focus view
-    content: "Still in the Focus view, spot the '+' button at the top-right. It's a shortcut to quickly add tasks without leaving your timer. Click 'Next'."
+    content: "Still in the Focus view, spot the <span class=\"bg-gray-600/30 px-1 rounded\">+</span> button at the top-right corner. It's a shortcut to quickly add tasks."
   },
   {
     title: "4. Spirals for Ideas",
     targetView: 'spirals',
-    content: "Use Spirals for ideas or tasks that pop up while you're focused. Jot them down here to deal with later. Click 'Next'." // Further cut down content
+    content: "Use Spirals for ideas or tasks that pop up while you're focused. Jot them down here to deal with later." 
   },
   {
     title: "5. Track Your Progress",
@@ -148,7 +324,7 @@ function App() {
   const [initialTimeForProgress, setInitialTimeForProgress] = useState(0);
 
   // Settings state
-  const [quoteType, setQuoteType] = useState("abusive"); // Default quote type
+  const [quoteType, setQuoteType] = useState("Annoying"); // Default quote type
   const [soundEnabled, setSoundEnabled] = useState(true); // Default sound setting
   const [theme, setTheme] = useState("dark"); // Default theme setting
   const [breakDuration, setBreakDuration] = useState(5); // Default break duration in minutes
@@ -448,8 +624,16 @@ function App() {
   // Motivational quote initialization and updates (runs when quoteType changes)
   useEffect(() => {
     const getRandomQuote = () => {
-      const quotes = quoteCategories[quoteType];
-      return quotes[Math.floor(Math.random() * quotes.length)];
+      const currentQuotes = quoteCategories[quoteType];
+      if (currentQuotes && currentQuotes.length > 0) {
+        return currentQuotes[Math.floor(Math.random() * currentQuotes.length)];
+      }
+      // Fallback to "Annoying" if current type is invalid or empty
+      const fallbackQuotes = quoteCategories["Annoying"];
+      if (fallbackQuotes && fallbackQuotes.length > 0) {
+        return fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+      }
+      return "Keep pushing!"; // Generic fallback
     };
     setMotivationalQuote(getRandomQuote());
   }, [quoteType]);
@@ -509,8 +693,16 @@ function App() {
   // Motivational quote logic
   const updateMotivationalQuote = useCallback(() => {
     const getRandomQuote = () => {
-      const quotes = quoteCategories[quoteType];
-      return quotes[Math.floor(Math.random() * quotes.length)];
+      const currentQuotes = quoteCategories[quoteType];
+      if (currentQuotes && currentQuotes.length > 0) {
+        return currentQuotes[Math.floor(Math.random() * currentQuotes.length)];
+      }
+      // Fallback to "Annoying" if current type is invalid or empty
+      const fallbackQuotes = quoteCategories["Annoying"];
+      if (fallbackQuotes && fallbackQuotes.length > 0) {
+        return fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+      }
+      return "You can do it!"; // Generic fallback
     };
     setMotivationalQuote(getRandomQuote());
   }, [quoteType]);
@@ -633,7 +825,7 @@ function App() {
     setIsBreakTime(false); // Ensure break mode is off
     setInitialTimeForProgress(timeToSet > 0 ? timeToSet : taskToStart.duration * 60); // Set initial time for progress bar
     toast({ title: "Task Started", description: `Timer for "${taskToStart.name}" has begun.` });
-  }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime, pauseNotificationSound]); // Added missing dependencies
+  }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime, pauseNotificationSound]);
 
   const handlePauseTimer = useCallback(() => {
     if (timerIntervalId.current) { 
@@ -1916,7 +2108,10 @@ function App() {
                 )}
                 
                 {/* Tutorial Content */}
-                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">{tutorialSteps[currentTutorialStep].content}</p> {/* Adjusted font size for mobile */}
+                <p 
+                  className="text-gray-300 leading-relaxed text-xs sm:text-sm"
+                  dangerouslySetInnerHTML={{ __html: tutorialSteps[currentTutorialStep].content }}
+                ></p> {/* Using dangerouslySetInnerHTML to render HTML in content */}
                 
                 {/* Tutorial Button Container */}
                 <div className="flex flex-col sm:flex-row justify-between items-center pt-3 border-t border-gray-700/50 gap-2 sm:gap-0"> {/* Adjusted layout for mobile */}
