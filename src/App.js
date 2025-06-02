@@ -1297,9 +1297,11 @@ function App() {
                 ref={focusCardRef} // Attach the ref here
               > 
                 {/* Quick Task shortcut */}
-                <div className={`absolute ${isExtraSmallScreen ? 'top-0 right-2' : 'top-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5`}> {/* Adjusted top position for mobile */}
-                  <TaskShortcut onAddTask={handleAddTask} isMobileView={isMobileView} /> {/* Pass isMobileView prop */}
-                </div>
+                {isQuickTaskEnabled && (
+                  <div className={`absolute ${isExtraSmallScreen ? 'bottom-0 right-0' : 'bottom-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5`}> {/* Adjusted top position for mobile, conditional rendering */}
+                    <TaskShortcut onAddTask={handleAddTask} isMobileView={isMobileView} /> {/* Pass isMobileView prop */}
+                  </div>
+                )}
                 
                 {/* Current Task Header - normal position by default, moved to top left on small heights via CSS */}
                 <div className="task-header-wrapper text-center mt-4 sm:mt-0 pt-1 sm:pt-1 mb-3 sm:mb-4 min-w-[10R0px]"> {/* Increased default pt and mb, Added mt-4 sm:mt-0 */}
