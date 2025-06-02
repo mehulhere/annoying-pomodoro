@@ -16,7 +16,7 @@ function TaskList({ tasks, onRemoveTask, onStartTask, currentTaskIndex, activeTa
     }
 
     return (
-        <ul className="space-y-2.5 max-h-[450px] overflow-y-auto p-1.5 custom-scrollbar" id="task-list">
+        <ul className="space-y-2.5 max-h-[60vh] overflow-y-auto p-1.5 custom-scrollbar" id="task-list">
             {tasks.map((task) => (
                 <TaskItem
                     key={task.id}

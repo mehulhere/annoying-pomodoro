@@ -126,7 +126,7 @@ const quoteCategories = {
     "Wow, you're really committed to not starting.",
     "Bet you're setting a personal best for doing nada."
   ],
-  OverlyDramatic: [
+  Dramatic: [
     "The fate of your to-do list hangs in the balance! Will you rise or fall?",
     "Behold! Your tasks await a hero—will it be you?",
     "The clock ticks like a doomsday device. Act now!",
@@ -148,7 +148,7 @@ const quoteCategories = {
     "Your to-do list is an epic quest. Embark now!",
     "The hour is nigh—save your goals from oblivion!"
   ],
-  GuiltTripping: [
+  Guilty: [
     "Your future self is begging you to start now. Don't let them down.",
     "Think of all the people counting on you. Get moving!",
     "Your goals are sad, wondering why you've abandoned them.",
@@ -170,7 +170,7 @@ const quoteCategories = {
     "Don't let your hard work so far go to waste.",
     "Your goals deserve your effort. Give it to them!"
   ],
-  CheerfullyAnnoying: [
+  Cheerful: [
     "Yay! Another minute of not working! Let's make today AWESOME and start, okay?",
     "Woo-hoo! You're so close to starting! Let's do this!",
     "Hooray! Your tasks are SO excited for you to begin!",
@@ -389,14 +389,14 @@ function App() {
     return tasks.reduce((total, task) => {
       if (task.completed) {
         return total + (task.timeSpentSeconds || 0);
-      } else if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
+      } else if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime && isTimerActive) {
         const now = Date.now();
-        const timeElapsedSinceStart = Math.floor((now - tasks[currentTaskIndex].timerStartTime) / 1000);
+        const timeElapsedSinceStart = task.timerStartTime ? Math.floor((now - task.timerStartTime) / 1000) : 0; // Added check for timerStartTime
         return total + (task.timeSpentSeconds || 0) + timeElapsedSinceStart;
       }
       return total + (task.timeSpentSeconds || 0);
     }, 0);
-  }, [tasks, currentTaskIndex, isBreakTime]);
+  }, [tasks, currentTaskIndex, isBreakTime, isTimerActive]);
 
   // Effect to handle viewport height and mobile view detection
   useEffect(() => {
@@ -831,19 +831,39 @@ function App() {
     if (timerIntervalId.current) { 
       clearInterval(timerIntervalId.current);
       timerIntervalId.current = null;
-      setIsTimerActive(false); 
+      setIsTimerActive(false);
+
+      // **Modification Start**
+      // If it's a task, update timeSpentSeconds with elapsed time since last start
+      if (!isBreakTime && currentTaskIndex !== -1 && tasks[currentTaskIndex]) {
+        const task = tasks[currentTaskIndex];
+        const elapsedSinceStart = task.timerStartTime ? Math.floor((Date.now() - task.timerStartTime) / 1000) : 0;
+        setTasks(prevTasks => prevTasks.map((t, idx) =>
+          idx === currentTaskIndex ? { ...t, timeSpentSeconds: (t.timeSpentSeconds || 0) + elapsedSinceStart, timerStartTime: null } : t
+        ));
+      }
+      // **Modification End**
+
       toast({ title: isBreakTime ? "Break Paused" : "Timer Paused" });
     }
-  }, [isBreakTime, setIsTimerActive]); // Removed pauseNotificationSound
+  }, [isBreakTime, setIsTimerActive, currentTaskIndex, tasks, setTasks]); // Removed pauseNotificationSound
 
   const handleResumeTimer = useCallback(() => {
     if (!isTimerActive && timeRemaining > 0 && 
         ((currentTaskIndex !== -1 && tasks[currentTaskIndex] && !tasks[currentTaskIndex].completed && !isBreakTime) || isBreakTime)) {
-       setIsTimerActive(true); 
+       setIsTimerActive(true);
+       // **Modification Start**
+       // For tasks, update timerStartTime to now
+       if (!isBreakTime && currentTaskIndex !== -1 && tasks[currentTaskIndex]) {
+         setTasks(prevTasks => prevTasks.map((t, idx) =>
+           idx === currentTaskIndex ? { ...t, timerStartTime: Date.now() } : t
+         ));
+       }
+       // **Modification End**
        // initialTimeForProgress should already be set from when it was paused
        toast({ title: isBreakTime ? "Break Resumed" : "Timer Resumed" });
     }
-  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive]); 
+  }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive, setTasks]);
 
   const handleTaskDone = useCallback(() => {
     if (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed) {
@@ -1457,7 +1477,7 @@ function App() {
           <div className="flex flex-col items-center group">
               <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium">
                 <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-red-500 transition-transform duration-300 group-hover:scale-110" />
-              P(Not Finish)
+              P(Not Finishing)
             </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-red-500/10 blur-md rounded-full"></div>
@@ -1479,7 +1499,7 @@ function App() {
                   key={item.id}
                   variant={isActive ? 'default' : 'outline'}
                   onClick={() => setActiveView(item.id)}
-                  className={`h-14 sm:h-14 md:h-[17.8%] sm:px-3 flex flex-col items-center justify-center text-xs sm:text-s lg:text-base rounded-lg sm:rounded-xl w-[18%] sm:w-20 lg:w-[13vh]
+                  className={`h-14 sm:h-14 md:h-[17.8%] sm:px-3 xl:py-3 flex flex-col items-center justify-center text-xs sm:text-s lg:text-base rounded-lg sm:rounded-xl w-[18%] sm:w-20 lg:w-[13vh]
                             ${
                               isActive
                                 ? `bg-gradient-to-br from-cyanAccent/20 to-brightAccent/10 shadow-lg shadow-cyanAccent/30 border border-cyanAccent/30` // Always use cyan/bright accent for active
@@ -1491,14 +1511,14 @@ function App() {
                 >
                   <IconComponent className={`
                     ${item.id === 'focus' ? 
-                      `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[2em] lg:w-[2em] xl:h-[2.2em] xl:w-[2.2em]` : 
+                      `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[4.5vh] lg:w-[4.5vh]` : 
                       item.id === 'plan' ?
-                      `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[2em] lg:w-[2em] xl:h-[2em] xl:w-[2em]` : 
-                      `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[1.6em] lg:w-[1.6em] xl:h-[1.75em] xl:w-[1.75em]`
+                      `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[4vh] lg:w-[4vh]` : 
+                      `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[3.5vh] lg:w-[3.5vh]`
                     }
                     mb-1 md:mb-1.5 sm:mb-2 lg:mb-2 ${getIconClass(isActive, item.color)}
                  `} />
-                  <span className={`${isActive ? 'font-semibold text-lightText' : 'text-subtleText/90'} truncate`}>{item.label}</span>
+                  <span className={`text-xs md:text-sm lg:text-[2.1vh] ${isActive ? 'font-semibold text-lightText' : 'text-subtleText/90'} truncate ${viewportHeight < 720 ? 'text-sm': 'text-base'}`}>{item.label}</span>
                 </UIButton>
               );
             })}
@@ -1514,7 +1534,7 @@ function App() {
               > 
                 {/* Quick Task shortcut */}
                 {isQuickTaskEnabled && (
-                  <div className={`absolute ${isExtraSmallScreen ? 'top-0 right-2' : 'top-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5`}> {/* Adjusted top position for mobile, conditional rendering */}
+                  <div className={`absolute ${isExtraSmallScreen ? 'top-0 right-2' : 'top-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5 max-w-xs`}> {/* Adjusted top position for mobile, conditional rendering */}
                     <TaskShortcut onAddTask={handleAddTask} isMobileView={isMobileView} /> {/* Pass isMobileView prop */}
                   </div>
                 )}
@@ -1607,7 +1627,7 @@ function App() {
                          </div>
                       )}
                         {!isTimerActive && timeRemaining === 0 && currentTaskIndex === -1 && (
-                          <div className={`mt-1 ${isExtraSmallScreen ? 'text-xs' : 'text-sm'} sm:text-[1rem] tracking-widest text-gray-400 uppercase text-center animate-pulse`}>
+                          <div className={`mt-1 ${isExtraSmallScreen ? 'text-xs' : 'text-sm'} ${viewportHeight < 630 ? 'sm: text-[2vh]' : 'sm:text-[2vh]'} tracking-widest text-gray-400 uppercase text-center animate-pulse`}>
                             CLOCKS TICKING...
                             <br />
                             NOT YOURS
@@ -1622,11 +1642,22 @@ function App() {
                   <button
                     onClick={handleMasterPlayPause}
                     disabled={isTimerActive ? false : (!tasks.some(task => !task.completed) && (!isBreakTime || timeRemaining === 0))}
-                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-2 sm:py-3 lg:py-4 xl:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px] flex-shrink-0 flex items-center justify-center"
+                    className={`group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center
+                      ${viewportHeight < 780
+                        ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
+                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
+                      }
+                    `}
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
-                      {isTimerActive ? <Pause className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" /> : <Play className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" />} {/* Increased default and xl icon size */}
+                    <div className={`relative flex items-center
+                      ${viewportHeight < 780 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                    `}> {/* Increased default gap */}
+                      {isTimerActive ?
+                        <Pause className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
+                        :
+                        <Play className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
+                      } {/* Increased default and xl icon size */}
                       {isTimerActive ? 'Pause' : (timeRemaining > 0 ? 'Resume' : 'Start')}
                     </div>
                   </button>
@@ -1641,11 +1672,18 @@ function App() {
                       }
                     }}
                     disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-2 sm:py-3 lg:py-4 xl:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px] flex-shrink-0 flex items-center justify-center text-center"
+                    className={`group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
+                      ${viewportHeight < 780
+                        ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
+                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
+                      }
+                    `}
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
-                      <CheckCircle className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" /> {/* Increased default and xl icon size */}
+                    <div className={`relative flex items-center
+                      ${viewportHeight < 780 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                    `}> {/* Increased default gap */}
+                      <CheckCircle className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
                       {isBreakTime ? 'Skip Break' : 'Done!'}
                 </div>
                   </button>
@@ -1653,11 +1691,18 @@ function App() {
                   <button 
                     onClick={handleExtendTimer}
                     disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
-                    className="group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white py-2 sm:py-3 lg:py-4 xl:py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px] flex-shrink-0 flex items-center justify-center text-center"
+                     className={`group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
+                       ${viewportHeight < 780
+                        ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
+                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
+                      }
+                    `}
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div className="relative flex items-center gap-1.5 sm:gap-2"> {/* Increased default gap */}
-                      <Plus className="h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5" /> {/* Increased default and xl icon size */}
+                    <div className={`relative flex items-center
+                      ${viewportHeight < 780 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                    `}> {/* Increased default gap */}
+                      <Plus className={`${viewportHeight < 780 ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
                     Extend
                 </div>
                   </button>
@@ -1745,7 +1790,7 @@ function App() {
                               </UIButton>
                          </div>
                          <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
-                            Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finish).
+                            Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finishing).
                          </div>
                       </div>
                         )}
@@ -1846,32 +1891,6 @@ function App() {
                 </UICardHeader>
                 <UICardContent className="flex-grow flex flex-col p-6 text-sm md:text-base overflow-y-auto"> {/* Increased padding */}
                 <div className="space-y-5 md:space-y-6">
-                  {/* Theme Setting */}
-                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center">
-                        <Moon className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
-                        <span className="font-medium text-xs md:text-sm">Theme</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-dark-200/80 rounded-full p-0.5">
-                        <button 
-                          className={`${theme === 'dark' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
-                          onClick={() => setTheme('dark')}
-                        >
-                          <Moon className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
-                          Dark
-                        </button>
-                        <button 
-                          className={`${theme === 'light' ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
-                          onClick={() => setTheme('light')}
-                        >
-                          <Sun className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
-                          Light
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
                   {/* Motivation Type Setting */}
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
                     <div className="flex justify-between items-center mb-3">
@@ -1883,8 +1902,8 @@ function App() {
                         {quoteType.charAt(0).toUpperCase() + quoteType.slice(1)}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5 text-[10px] md:text-xs">
-                      {Object.keys(quoteCategories).map(type => (
+                    <div className="grid grid-cols-3 gap-1.5 text-[10px] md:text-xs">
+                      {Object.keys(quoteCategories).filter(type => type !== 'Geeky').map(type => (
                         <div 
                           key={type}
                           className={`${quoteType === type ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded p-1.5 text-center cursor-pointer hover:bg-cyanAccent/20 hover:text-cyanAccent transition-colors`}
@@ -1968,7 +1987,48 @@ function App() {
                       <span>1 min</span>
                       <span>15 min</span>
                     </div>
+                    </div>
+                    
+                                      {/* App Controls Section */}
+                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
+                    <div className="flex items-center mb-3">
+                      <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
+                      <span className="font-medium text-xs md:text-sm">App Controls</span>
+                      </div>
+                      {/* Quick Task Button Toggle */}
+                    <div className="flex justify-between items-center mb-1">
+                       <span className="text-subtleText text-xs md:text-sm">Quick Task Button:</span>
+                       <div className="flex items-center gap-1.5">
+                         <button 
+                           className={`${isQuickTaskEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-2 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                           onClick={() => setIsQuickTaskEnabled(true)}
+                         >
+                           Enabled
+                         </button>
+                         <button 
+                           className={`${!isQuickTaskEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-2 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                           onClick={() => setIsQuickTaskEnabled(false)}
+                         >
+                           Disabled
+                         </button>
+                       </div>
+                    </div>
+                    {/* Restart Tutorial Button */}
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-subtleText text-xs md:text-sm">Tutorial</span>
+                      </div>
+                      <button 
+                        className="w-full bg-gradient-to-r from-blue-600/80 to-cyan-600/80 hover:from-blue-500/90 hover:to-cyan-500/90 text-white py-1.5 rounded-md text-xs md:text-sm font-medium transition-all duration-300 flex items-center justify-center gap-1.5"
+
+                        onClick={handleRestartTutorial}
+                      >
+                        <Play className="h-3.5 w-3.5" /> Restart Tutorial
+                      </button>
+                    </div>
+
                   </div>
+
 
                   {/* Points System Setting */}
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
@@ -2023,45 +2083,6 @@ function App() {
                     </div>
                   </div>
 
-                  {/* App Controls Section */}
-                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
-                    <div className="flex items-center mb-3">
-                      <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
-                      <span className="font-medium text-xs md:text-sm">App Controls</span>
-                      </div>
-                      {/* Quick Task Button Toggle */}
-                    <div className="flex justify-between items-center mb-1">
-                       <span className="text-subtleText text-xs md:text-sm">Quick Task Button:</span>
-                       <div className="flex items-center gap-1.5">
-                         <button 
-                           className={`${isQuickTaskEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-2 text-[10px] md:text-xs flex items-center transition-all duration-300`}
-                           onClick={() => setIsQuickTaskEnabled(true)}
-                         >
-                           Enabled
-                         </button>
-                         <button 
-                           className={`${!isQuickTaskEnabled ? 'bg-cyanAccent/30 text-cyanAccent font-semibold' : 'bg-dark-200/40 text-subtleText'} rounded-full px-2.5 py-2 text-[10px] md:text-xs flex items-center transition-all duration-300`}
-                           onClick={() => setIsQuickTaskEnabled(false)}
-                         >
-                           Disabled
-                         </button>
-                       </div>
-                    </div>
-                    {/* Restart Tutorial Button */}
-                    <div className="mb-3">
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-subtleText text-xs md:text-sm">Tutorial</span>
-                      </div>
-                      <button 
-                        className="w-full bg-gradient-to-r from-blue-600/80 to-cyan-600/80 hover:from-blue-500/90 hover:to-cyan-500/90 text-white py-1.5 rounded-md text-xs md:text-sm font-medium transition-all duration-300 flex items-center justify-center gap-1.5"
-
-                        onClick={handleRestartTutorial}
-                      >
-                        <Play className="h-3.5 w-3.5" /> Restart Tutorial
-                      </button>
-                    </div>
-
-                  </div>
 
                   {/* About Section */}
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
