@@ -125,12 +125,14 @@ const DashboardView = () => {
     }
 
     return (
-        <div className="p-4">
-            <Card className="mb-4">
+        <div className="p-4 flex flex-col h-full">
+            <Card className="mb-4 flex-shrink-0">
                 <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <CardTitle>Productivity Dashboard</CardTitle>
 
-                    <div className="flex items-center space-x-2 flex-wrap justify-center">
+                    {/* Container for Time Range and Chart Type dropdowns - Side-by-side on mobile */}
+                    <div className="flex flex-row items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                        {/* Time Range Dropdown */}
                         <Select onValueChange={(value) => setTimeRange(parseInt(value, 10))} value={timeRange.toString()}>
                             <SelectTrigger className="w-[100px]">
                                 <SelectValue placeholder="Select Range" />
@@ -141,34 +143,23 @@ const DashboardView = () => {
                                 <SelectItem value="30">30 Days</SelectItem>
                             </SelectContent>
                         </Select>
+
+                        {/* Chart Type Dropdown (Moved from CardContent) */}
+                        <Select onValueChange={(value) => setChartType(value)} value={chartType}>
+                            <SelectTrigger className="w-[100px]">
+                                <SelectValue placeholder="Select Chart" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="bar">Bar</SelectItem>
+                                <SelectItem value="line">Line</SelectItem>
+                                <SelectItem value="area">Area</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div className="flex space-x-2 flex-wrap justify-center">
-                            <Select onValueChange={(value) => setChartType(value)} value={chartType}>
-                                <SelectTrigger className="w-[100px]">
-                                    <SelectValue placeholder="Select Chart" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="bar">Bar</SelectItem>
-                                    <SelectItem value="line">Line</SelectItem>
-                                    <SelectItem value="area">Area</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="flex space-x-2 flex-wrap justify-center">
-                            <Button onClick={handleExport} size="sm" variant="outline" className="flex items-center">
-                                <Download className="w-4 h-4 mr-2" />
-                                Export
-                            </Button>
-                            <Button onClick={handleImport} size="sm" variant="outline" className="flex items-center">
-                                <Upload className="w-4 h-4 mr-2" />
-                                Import
-                            </Button>
-                        </div>
-                    </div>
-
+                    {/* Export/Import Buttons - MOVED TO BOTTOM */}
+                    {/* Chart Container */}
                     <div className="h-40 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             {chartType === 'bar' && (
@@ -212,7 +203,7 @@ const DashboardView = () => {
             </Card>
 
             {/* Stats summary cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 flex-shrink-0">
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center">
@@ -255,12 +246,12 @@ const DashboardView = () => {
             </div>
 
             {/* Detailed stats table */}
-            <Card className="shadow-md">
+            <Card className="shadow-md flex-shrink-0">
                 <CardHeader className="py-3 border-b border-dark-300/25">
                     <CardTitle className="text-lg font-semibold text-lightText">Detailed Stats</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow overflow-hidden p-3.5">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto h-full">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-dark-300/40">
@@ -291,6 +282,18 @@ const DashboardView = () => {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Export/Import Buttons - Moved here */}
+            <div className="mt-auto mb-6 flex justify-center space-x-4 flex-wrap flex-shrink-0 max-w-md mx-auto">
+                <Button onClick={handleExport} size="sm" variant="outline" className="flex items-center m-2 px-6 py-3">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                </Button>
+                <Button onClick={handleImport} size="sm" variant="outline" className="flex items-center m-2 px-6 py-3">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import
+                </Button>
+            </div>
         </div>
     );
 };

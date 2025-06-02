@@ -81,6 +81,9 @@ const formatDurationToHoursMinutes = (totalSecondsInput) => {
 };
 
 function App() {
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 640); // Tailwind 'sm' breakpoint
+
   const [motivationalQuote, setMotivationalQuote] = useState("");
   const [showQuote, setShowQuote] = useState(false); // New state to control quote visibility
   const [tasks, setTasks] = useState([]);
@@ -168,6 +171,24 @@ function App() {
       return total + (task.timeSpentSeconds || 0);
     }, 0);
   }, [tasks, currentTaskIndex, isBreakTime]);
+
+  // Effect to handle viewport height and mobile view detection
+  useEffect(() => {
+    const handleViewportUpdate = () => {
+      setViewportHeight(window.innerHeight);
+      setIsMobileView(window.innerWidth < 640);
+    };
+
+    handleViewportUpdate(); // Initial call
+
+    window.addEventListener('resize', handleViewportUpdate);
+    window.addEventListener('orientationchange', handleViewportUpdate);
+
+    return () => {
+      window.removeEventListener('resize', handleViewportUpdate);
+      window.removeEventListener('orientationchange', handleViewportUpdate);
+    };
+  }, []);
 
   // Load settings from localStorage on initial render
   useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
@@ -987,7 +1008,10 @@ function App() {
 
   // JSX will be in the next part
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden"> {/* Changed min-h-screen to h-screen */}
+    <div 
+      className={`bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden ${!isMobileView ? 'h-screen' : ''}`}
+      style={isMobileView ? { height: `${viewportHeight}px` } : {}}
+    >
       {/* Custom style to override TaskListC max height */}
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar.max-h-\\[450px\\], 
