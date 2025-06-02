@@ -15,7 +15,7 @@ This document outlines the main files and directories in the Annoying Pomodoro R
     -   **`assets/`**: Directory for other static assets like images or sound files (e.g., `annoyingNotification.mp3`, `logo192.png`).
 -   **`src/`**: Contains the source code of the React application.
     -   **`index.js`**: The JavaScript entry point. It renders the main `App` component into the DOM.
-    -   **`App.js`**: The main application component. It manages the overall state, layout, view switching, timer logic, task/spiral operations, daily stats calculation, settings persistence, historical stats management, notifications, and motivational quotes. It also defines the `navItems` array and the `getIconClass` helper function for navigation styling.
+    -   **`App.js`**: The main application component. It manages the overall state, layout, view switching, timer logic, task/spiral operations, daily stats calculation, settings persistence, historical stats management, notifications, and motivational quotes. It also defines the `navItems` array and the `getIconClass` helper function for navigation styling. Manages the initialTimeForProgress state for accurate progress bar display during extensions.
     -   **`index.css`**: Global CSS styles and Tailwind CSS base/component/utility layers. Contains global styling, theme variables (light/dark), custom scrollbar styles (`.custom-scrollbar`), and utility CSS classes, including those for the main heading gradients.
     -   **`components/`**: Directory for reusable React components.
         -   **`TaskForm.jsx`**: Component for the form used to add new tasks (description and duration).
