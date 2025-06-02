@@ -1154,7 +1154,7 @@ function App() {
             <div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center space-x-2 p-1 z-20"> {/* Adjusted to be more flush left, reduced padding and space */}
               {/* Image from logo192.png */}
               <img 
-                src={`${process.env.PUBLIC_URL}/assets/logo192.png`} 
+                src={`${process.env.PUBLIC_URL}/assets/android-chrome-192x192.png`} // Changed from logo192.png
                 alt="Annoying Character" 
                 className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 cursor-pointer" /* Added cursor-pointer */
                 onClick={handleAppleClick} // Added click handler
