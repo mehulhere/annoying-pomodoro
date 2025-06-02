@@ -528,7 +528,7 @@ function App() {
     setIsTimerActive(true);
     setIsBreakTime(false); // Ensure break mode is off
     toast({ title: "Task Started", description: `Timer for "${taskToStart.name}" has begun.` });
-  }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime]); // Added missing dependencies
+  }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime, pauseNotificationSound]); // Added missing dependencies
 
   const handlePauseTimer = useCallback(() => {
     if (timerIntervalId.current) { 
@@ -1209,6 +1209,13 @@ function App() {
                            PAUSED
                          </div>
                       )}
+                        {!isTimerActive && currentTaskIndex === -1 && (
+                          <div className="mt-1 text-sm sm:text-[0.82rem] tracking-widest text-gray-400 uppercase text-center animate-pulse">
+                            CLOCKS TICKING...
+                            <br />
+                            NOT YOURS
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -1217,7 +1224,7 @@ function App() {
                 <div className="flex justify-center gap-2 sm:gap-4 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2"> {/* Increased default pb, Added mb-4 sm:mb-0, Increased sm:gap */}
                   <button
                     onClick={handleMasterPlayPause}
-                    disabled={!isTimerActive && (timeRemaining === 0 || currentTaskIndex === -1 || (tasks[currentTaskIndex] && tasks[currentTaskIndex].completed) || isBreakTime)} // Disabled if timer is NOT active AND (time is 0 OR no current task OR current task completed OR is break time)
+                    disabled={isTimerActive ? false : !tasks.some(task => !task.completed)}
                     className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
