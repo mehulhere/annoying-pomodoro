@@ -103,4 +103,5 @@ Use the navigation bar on the left (or bottom on smaller screens) to switch betw
 
 ## License
 
-© 2025 Mehul Pahuja All Rights Reserved. 
+© 2025 Mehul Pahuja All Rights Reserved.
+This copyright applies to all content and commits in this repository unless otherwise noted. 
