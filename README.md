@@ -113,6 +113,6 @@ This will start the development server, and you can view the application in your
 
 *   Customizable notification sound choices.
 *   More detailed historical stats or trends.
-*   Export/Import tasks or settings.
+*   Export/Import tasks or settings. 
 *   Email notification when break ends.
 *   More detailed historical stats or trends. 

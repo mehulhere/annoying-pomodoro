@@ -12,6 +12,7 @@ import SpiralListC from './components/SpiralList'; // Renamed
 import DashboardViewC from './components/DashboardView'; // Renamed
 import * as statsHistory from './lib/statsHistory';
 import { Timer, CheckCircle, Award, Coffee, AlertTriangle, Play, Moon, Sun, Volume2, VolumeX, BrainCircuit, Clock, Plus, Pause, ChevronDown, ChevronRight, ListChecks, SlidersHorizontal, PieChart, AlertCircle } from 'lucide-react'; // Removed unused icons
+import TaskShortcut from './components/TaskShortcut'; // New component for quick task creation
 
 // Different quote categories
 const quoteCategories = {
@@ -83,6 +84,7 @@ const formatDurationToHoursMinutes = (totalSecondsInput) => {
 function App() {
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 640); // Tailwind 'sm' breakpoint
+  const [isExtraSmallScreen, setIsExtraSmallScreen] = useState(window.innerWidth < 375); // Extra small screen detection
 
   const [motivationalQuote, setMotivationalQuote] = useState("");
   const [showQuote, setShowQuote] = useState(false); // New state to control quote visibility
@@ -140,7 +142,7 @@ function App() {
     { id: 'dashboard', label: 'Stats', icon: PieChart, color: 'amber-500', activeColor: 'yellow-500' }
   ];
 
-  const getIconClass = (isActive, itemColor) => {
+  const getIconClass = useCallback((isActive, itemColor) => {
     if (isActive) {
       if (itemColor === 'violet-500') return 'text-violet-500';
       if (itemColor === 'sky-400') return 'text-sky-400';
@@ -155,7 +157,7 @@ function App() {
       return 'text-white'; // Default fallback
     }
     return 'text-subtleText group-hover:text-subtleText/70';
-  };
+  }, []);
 
   // Calculate total focus time from completed tasks - Wrapped in useCallback
   // DEFINED HERE, INSIDE App and BEFORE its usage in other hooks/functions
@@ -176,6 +178,7 @@ function App() {
   useEffect(() => {
     const updateIsMobileView = () => {
       setIsMobileView(window.innerWidth < 640);
+      setIsExtraSmallScreen(window.innerWidth < 375); // Update extra small screen state
     };
 
     const updateViewportHeight = () => {
@@ -1143,7 +1146,7 @@ function App() {
         {/* Main content area with side navigation */}
         <div className="flex flex-col sm:flex-row flex-grow overflow-hidden w-full gap-2 sm:gap-2 lg:gap-3"> {/* Reduced gap from sm:gap-3 lg:gap-5 */}
           {/* Side Navigation - Enhanced with modern styling */}
-          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[6.5rem] flex-shrink-0 justify-between"> {/* Reduced padding and gaps */}
+          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[13.5vh] flex-shrink-0 justify-between"> {/* Reduced padding and gaps */}
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = activeView === item.id;
@@ -1152,7 +1155,7 @@ function App() {
                   key={item.id}
                   variant={isActive ? 'default' : 'outline'}
                   onClick={() => setActiveView(item.id)}
-                  className={`h-14 sm:h-auto py-2 sm:py-3 px-2 sm:px-3 flex flex-col items-center justify-center text-xs sm:text-xs lg:text-sm rounded-lg sm:rounded-xl w-[18%] sm:w-20 lg:w-[6rem]
+                  className={`h-14 sm:h-14 md:h-[17.8%] sm:px-3 flex flex-col items-center justify-center text-xs sm:text-s lg:text-base rounded-lg sm:rounded-xl w-[18%] sm:w-20 lg:w-[13vh]
                             ${
                               isActive
                                 ? `bg-gradient-to-br from-cyanAccent/20 to-brightAccent/10 shadow-lg shadow-cyanAccent/30 border border-cyanAccent/30` // Always use cyan/bright accent for active
@@ -1162,7 +1165,10 @@ function App() {
                   // The rgba values would ideally come from Tailwind config, here using placeholder logic
                   // For specific colors like cyanAccent, you might need to map them to RGB if not directly usable in rgba()
                 >
-                  <IconComponent className={`h-5 w-5 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mb-1 sm:mb-2 ${getIconClass(isActive, item.color)}`} />
+                  <IconComponent className={`${item.id === 'focus' || item.id === 'plan' ? 
+                    `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[1.8em] lg:w-[1.8em]` : 
+                    `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[1.5em] lg:w-[1.5em]`
+                  } mb-1 md:mb-1.5 sm:mb-2 lg:mb-2 ${getIconClass(isActive, item.color)}`} />
                   <span className={`${isActive ? 'font-semibold text-lightText' : 'text-subtleText/90'} truncate`}>{item.label}</span>
                 </UIButton>
               );
@@ -1177,13 +1183,18 @@ function App() {
                 className="h-full flex flex-col bg-gradient-to-br from-dark-100/90 to-dark-200/90 shadow-md hover:shadow-lg transition-all duration-500 rounded-xl p-2 sm:p-4 lg:p-6 relative focus-view-container"
                 ref={focusCardRef} // Attach the ref here
               > 
+                {/* Quick Task shortcut */}
+                <div className={`absolute ${isExtraSmallScreen ? 'top-0 right-2' : 'top-4 right-4'} z-10 sm:top-4.5 md:top-3.5 lg:top-5 sm:right-5`}> {/* Adjusted top position for mobile */}
+                  <TaskShortcut onAddTask={handleAddTask} isMobileView={isMobileView} /> {/* Pass isMobileView prop */}
+                </div>
+                
                 {/* Current Task Header - normal position by default, moved to top left on small heights via CSS */}
                 <div className="task-header-wrapper text-center mt-4 sm:mt-0 pt-1 sm:pt-1 mb-3 sm:mb-4 min-w-[10R0px]"> {/* Increased default pt and mb, Added mt-4 sm:mt-0 */}
-                  <div className="inline-flex items-center gap-2 sm:gap-2 bg-gray-900/70 backdrop-blur-sm rounded-xl px-3 py-2 sm:px-3 sm:py-2 text-sm sm:text-base task-header"> {/* Increased default padding, gap, and text size */}
-                    <div className={`w-2 h-2 sm:w-2 sm:h-2 rounded-full ${isTimerActive && !isBreakTime ? 'bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse' : 'bg-gray-600'}`}></div> {/* Increased default dot size */}
+                  <div className={`inline-flex items-center ${isExtraSmallScreen ? 'gap-1.5 px-2 py-1.5 rounded-lg' : 'gap-2 sm:gap-2 px-3 py-2 sm:px-3 sm:py-2 rounded-xl'} bg-gray-900/70 backdrop-blur-sm text-sm sm:text-base task-header`}>
+                    <div className={`${isExtraSmallScreen ? 'w-1.5 h-1.5' : 'w-2 h-2 sm:w-2 sm:h-2'} rounded-full ${isTimerActive && !isBreakTime ? 'bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse' : 'bg-gray-600'}`}></div>
                     <div className="task-header-content">
-                      <span className="text-gray-300 font-medium task-label">Current Task: </span>
-                      <span className={`font-semibold ${currentTaskIndex !== -1 && !isBreakTime ? "text-cyan-400" : "text-gray-400"} task-name max-w-[200px] truncate`}>{currentDisplayTaskName}</span>
+                      <span className={`${isExtraSmallScreen ? 'text-xs' : 'text-gray-300'} font-medium task-label`}>Current Task: </span>
+                      <span className={`font-semibold ${currentTaskIndex !== -1 && !isBreakTime ? "text-cyan-400" : "text-gray-400"} task-name ${isExtraSmallScreen ? 'text-xs max-w-[150px]' : 'max-w-[200px]'} truncate`}>{currentDisplayTaskName}</span>
                     </div>
                   </div>
                 </div>
@@ -1339,7 +1350,7 @@ function App() {
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyanAccent mr-1.5"></span>
                           Total Tasks:
                         </span>
-                        <span className='text-grey-400 font-semibold'>{tasks.length}</span>
+                        <span className='text-teal-400 font-semibold'>{tasks.length}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-subtleText flex items-center">
