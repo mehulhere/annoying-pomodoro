@@ -127,7 +127,7 @@ const tutorialSteps = [
 function App() {
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 640); // Tailwind 'sm' breakpoint
-  const [isExtraSmallScreen, setIsExtraSmallScreen] = useState(window.innerWidth < 375); // Extra small screen detection
+  const [isExtraSmallScreen, setIsExtraSmallScreen] = useState(window.innerWidth < 350); // Extra small screen detection, adjusted threshold
 
   const [motivationalQuote, setMotivationalQuote] = useState("");
   const [showQuote, setShowQuote] = useState(false); // New state to control quote visibility
@@ -181,6 +181,9 @@ function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [currentTutorialStep, setCurrentTutorialStep] = useState(0);
 
+  // New state for Quick Task button visibility
+  const [isQuickTaskEnabled, setIsQuickTaskEnabled] = useState(true);
+
   const navItems = [
     { id: 'focus', label: 'Focus', icon: Timer, color: 'violet-500', activeColor: 'violet-500' },
     { id: 'plan', label: 'Plan', icon: ListChecks, color: 'emerald-500', activeColor: 'emerald-500' },
@@ -225,7 +228,7 @@ function App() {
   useEffect(() => {
     const updateIsMobileView = () => {
       setIsMobileView(window.innerWidth < 640);
-      setIsExtraSmallScreen(window.innerWidth < 375); // Update extra small screen state
+      setIsExtraSmallScreen(window.innerWidth < 350); // Update extra small screen state, adjusted threshold
     };
 
     const updateViewportHeight = () => {
@@ -276,6 +279,14 @@ function App() {
     if (savedTheme) setTheme(savedTheme);
     if (savedBreakDuration) setBreakDuration(parseInt(savedBreakDuration, 10));
     if (savedAllowExtendBreak !== null) setAllowExtendBreak(savedAllowExtendBreak === 'true');
+
+    // Load new setting: Quick Task Enabled
+    const savedIsQuickTaskEnabled = localStorage.getItem('isQuickTaskEnabled');
+    if (savedIsQuickTaskEnabled !== null) {
+      setIsQuickTaskEnabled(savedIsQuickTaskEnabled === 'true');
+    } else {
+      setIsQuickTaskEnabled(true); // Default to enabled if not found
+    }
 
     // --- Daily Reset Logic ---
     const now = Date.now();
@@ -377,6 +388,7 @@ function App() {
     localStorage.setItem('breakDuration', breakDuration.toString());
     localStorage.setItem('allowExtendBreak', allowExtendBreak.toString());
     localStorage.setItem('dailyResetTime', dailyResetTime);
+    localStorage.setItem('isQuickTaskEnabled', isQuickTaskEnabled.toString()); // Save Quick Task Enabled setting
 
     if (lastResetTimestamp !== null) {
       localStorage.setItem('lastResetTimestamp', lastResetTimestamp.toString());
@@ -410,7 +422,7 @@ function App() {
       };
       statsHistory.saveDailyStats(currentStats);
     }
-  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime]);
+  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime, isQuickTaskEnabled]);
 
   // Apply theme class to body when it changes
   useEffect(() => {
@@ -1110,17 +1122,30 @@ function App() {
     setActiveView('focus'); // Ensure they land on focus view
   };
 
+  // Function to restart tutorial
+  const handleRestartTutorial = () => {
+    setShowTutorial(true);
+    setCurrentTutorialStep(0);
+    localStorage.removeItem('annoyingPomodoroTutorial_v1_seen'); // Ensure it shows again
+    setActiveView('focus'); // Start tutorial from focus view
+  };
+
   // JSX will be in the next part
   return (
     <div 
       className={`bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden ${!isMobileView ? 'h-screen' : ''}`}
       style={isMobileView ? { height: `${viewportHeight}px` } : {}}
     >
-      {/* Custom style to override TaskListC max height */}
+      {/* Custom style to override TaskListC max height and add custom breakpoint */}
       <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar.max-h-\\[450px\\], 
-        ul.max-h-\\[450px\\].custom-scrollbar {
+        .custom-scrollbar.max-h-\[450px\], 
+        ul.max-h-\[450px\].custom-scrollbar {
           max-height: 500px !important;
+        }
+        @media (min-width: 375px) { /* Custom 'xs' breakpoint definition */
+          .xs\:max-w-xs {
+             max-width: 320px !important;
+          }
         }
       `}} />
       
@@ -1151,7 +1176,7 @@ function App() {
             </h1>
 
             {/* Annoying Apple/Tomato and its Quote Bubble - Positioned alongside title */}
-            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center space-x-2 p-1 z-20"> {/* Adjusted to be more flush left, reduced padding and space */}
+            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center space-x-2 p-1 z-20 mt-[-1px] sm:mt-0"> {/* Adjusted to be more flush left, reduced padding and space, moved up 1px on mobile */}
               {/* Image from logo192.png */}
               <img 
                 src={`${process.env.PUBLIC_URL}/assets/android-chrome-192x192.png`} // Changed from logo192.png
@@ -1235,7 +1260,7 @@ function App() {
         {/* Main content area with side navigation */}
         <div className="flex flex-col sm:flex-row flex-grow overflow-hidden w-full gap-2 sm:gap-2 lg:gap-3"> {/* Reduced gap from sm:gap-3 lg:gap-5 */}
           {/* Side Navigation - Enhanced with modern styling */}
-          <div className="flex pt-0 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[13.5vh] flex-shrink-0 justify-between relative z-[100] bg-gray-900/50 sm:bg-transparent sm:dark:bg-transparent p-1 rounded-lg sm:p-0 sm:rounded-none"> {/* Added background for forced visibility and padding/rounding for mobile */}
+          <div className="flex p-1 sm:pt-1 flex-row sm:flex-col gap-2 sm:gap-1 lg:gap-1.5 w-full sm:w-16 sm:w-20 lg:w-[13.5vh] flex-shrink-0 justify-between relative z-[100] sm:bg-transparent sm:dark:bg-transparent p-1 rounded-lg sm:p-0 sm:rounded-none"> {/* Removed bg-gray-900/50 */}
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = activeView === item.id;
@@ -1781,6 +1806,44 @@ function App() {
                     </div>
                   </div>
 
+                  {/* App Controls Section */}
+                  <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
+                    <div className="flex items-center mb-3">
+                      <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5 mr-1.5 text-cyanAccent" />
+                      <span className="font-medium text-xs md:text-sm">App Controls</span>
+                    </div>
+                    {/* Restart Tutorial Button */}
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-subtleText text-xs md:text-sm">Restart Tutorial:</span>
+                      <UIButton
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRestartTutorial}
+                        className="py-1 px-2 text-xs md:text-sm"
+                      >
+                        Restart
+                      </UIButton>
+                    </div>
+                    {/* Quick Task Button Toggle */}
+                    <div className="flex justify-between items-center">
+                       <span className="text-subtleText text-xs md:text-sm">Quick Task Button:</span>
+                       <div className="flex items-center gap-1.5">
+                         <button 
+                           className={`${isQuickTaskEnabled ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                           onClick={() => setIsQuickTaskEnabled(true)}
+                         >
+                           Enabled
+                         </button>
+                         <button 
+                           className={`${!isQuickTaskEnabled ? 'bg-dark-100 text-white' : 'text-subtleText'} rounded-full px-2.5 py-1 text-[10px] md:text-xs flex items-center transition-all duration-300`}
+                           onClick={() => setIsQuickTaskEnabled(false)}
+                         >
+                           Disabled
+                         </button>
+                       </div>
+                    </div>
+                  </div>
+
                   {/* About Section */}
                   <div className="bg-dark-300/25 rounded-md p-3 md:p-4">
                     <div className="flex items-center mb-2">
@@ -1803,11 +1866,11 @@ function App() {
 
           {/* Tutorial Modal - MOVED INSIDE MAIN and changed to absolute positioning */}
           {showTutorial && tutorialSteps[currentTutorialStep] && (
-            <div className={`absolute z-50 bottom-4 right-4 animate-in fade-in duration-300`}> {/* Removed conditional positioning */}
-              <div className="bg-gray-800 border border-gray-700/80 p-6 rounded-xl shadow-2xl max-w-sm w-full flex flex-col space-y-4 text-white">
+            <div className={`absolute z-50 ${isExtraSmallScreen ? 'bottom-0 right-0' : 'bottom-4 right-4'} animate-in fade-in duration-300`}> {/* Adjusted positioning based on isExtraSmallScreen */}
+              <div className="bg-gray-800 border border-gray-700/80 p-6 rounded-xl shadow-2xl max-w-[280px] sm:max-w-sm w-full flex flex-col space-y-4 text-white"> {/* Adjusted max-w for mobile */}
                 {/* Image and Title container - Conditional rendering */}
                 {currentTutorialStep === 0 ? (
-                  <div className="flex items-center space-x-3 mb-2"> {/* Added container div */}
+                  <div className="flex items-center space-x-3 mb-1"> {/* Reduced mb-2 to mb-1 */}
                     {/* Image of Annoying Tomato */}
                     <img 
                       src={`${process.env.PUBLIC_URL}/assets/annoyingTomato.png`} // Assuming the image is placed here
@@ -1816,19 +1879,20 @@ function App() {
                     />
                     {/* Tutorial Title - Use dangerouslySetInnerHTML only for step 0 */}
                     <h2 
-                      className="text-xl font-bold text-cyanAccent" 
+                      className="text-lg sm:text-xl font-bold text-cyanAccent"  // Adjusted font size for mobile
                       dangerouslySetInnerHTML={{ __html: tutorialSteps[currentTutorialStep].title }}
                     />
                   </div>
                 ) : (
                   // Normal title rendering for other steps
-                  <h2 className="text-xl font-bold text-cyanAccent mb-1">{tutorialSteps[currentTutorialStep].title}</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-cyanAccent">{tutorialSteps[currentTutorialStep].title}</h2> 
                 )}
                 
                 {/* Tutorial Content */}
-                <p className="text-gray-300 leading-relaxed text-sm">{tutorialSteps[currentTutorialStep].content}</p>
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">{tutorialSteps[currentTutorialStep].content}</p> {/* Adjusted font size for mobile */}
                 
-                <div className="flex justify-between items-center pt-3 border-t border-gray-700/50">
+                {/* Tutorial Button Container */}
+                <div className="flex flex-col sm:flex-row justify-between items-center pt-3 border-t border-gray-700/50 gap-2 sm:gap-0"> {/* Adjusted layout for mobile */}
                   <UIButton 
                     variant="outline"
                     onClick={handleFinishTutorial} // Skip button always finishes/skips
