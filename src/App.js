@@ -1297,10 +1297,15 @@ function App() {
                   // The rgba values would ideally come from Tailwind config, here using placeholder logic
                   // For specific colors like cyanAccent, you might need to map them to RGB if not directly usable in rgba()
                 >
-                  <IconComponent className={`${item.id === 'focus' || item.id === 'plan' ? 
-                    `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[2em] lg:w-[2em] xl:h-[2.2em] xl:w-[2.2em]` : 
-                    `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[1.6em] lg:w-[1.6em] xl:h-[1.75em] xl:w-[1.75em]`
-                  } mb-1 md:mb-1.5 sm:mb-2 lg:mb-2 ${getIconClass(isActive, item.color)}`} />
+                  <IconComponent className={`
+                    ${item.id === 'focus' ? 
+                      `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[2em] lg:w-[2em] xl:h-[2.2em] xl:w-[2.2em]` : 
+                      item.id === 'plan' ?
+                      `h-[1.92em] w-[1.92em] md:h-[2em] md:w-[2em] lg:h-[2em] lg:w-[2em] xl:h-[2em] xl:w-[2em]` : 
+                      `h-[1.67em] w-[1.67em] md:h-[1.75em] md:w-[1.75em] lg:h-[1.6em] lg:w-[1.6em] xl:h-[1.75em] xl:w-[1.75em]`
+                    }
+                    mb-1 md:mb-1.5 sm:mb-2 lg:mb-2 ${getIconClass(isActive, item.color)}
+                 `} />
                   <span className={`${isActive ? 'font-semibold text-lightText' : 'text-subtleText/90'} truncate`}>{item.label}</span>
                 </UIButton>
               );

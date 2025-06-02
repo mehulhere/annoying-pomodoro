@@ -1,61 +1,32 @@
 # Annoying Pomodoro
 
-An interactive Pomodoro timer application designed to keep you focused and productive, with a touch of customizable annoyance to ensure you stay on task.
+An interactive and opinionated Pomodoro timer application designed to enhance focus and productivity through customizable motivational nudges and comprehensive tracking.
+
+## Description
+
+Annoying Pomodoro helps you manage your tasks and time using the Pomodoro technique, coupled with a unique "annoying" element to keep you accountable. Plan your work, focus with timed sessions, capture stray thoughts, and track your progress over time. It's built as a single-page application for simplicity and speed.
 
 ## Features
 
-*   **Task Management**: Add, remove, and mark tasks as complete.
-*   **Pomodoro Timer**: Classic Pomodoro timer for focused work sessions.
-*   **Circular Progress Timer**: Visual indicator around the timer showing elapsed time.
-*   **Configurable Break Timer**: 
-    *   Automatic breaks after task completion.
-    *   Adjustable default break duration (1-15 minutes) via settings.
-    *   Option to skip breaks.
-*   **Flexible Time Extension**: 
-    *   Option to extend the timer for tasks (when timer reaches 00:00).
-    *   Option to extend breaks, even while the break timer is running (configurable via settings).
-*   **Motivational Quotes**: 
-    *   Four customizable quote categories: Nagging, Rude, Annoying, Abusive.
-    *   Quotes change periodically to keep you engaged.
-*   **Fair Scoring System**: 
-    *   Earn base points for completing tasks.
-    *   Bonus points awarded based on the *percentage* of estimated time saved (up to a max bonus).
-    *   Penalties for extending tasks.
-*   **Spirals (Idea Logging)**: A place to jot down ideas or future tasks without breaking your current focus, which can later be moved to the main task list.
-*   **Comprehensive Stats**: 
-    *   In-header display: Score, Tasks Completed, total accumulated Focus Time (updates live), Calculated Idle Time, P(Not Finishing).
-    *   Daily Stats in Plan view: Total Tasks, Total Planned Time, Estimated Remaining Time, P(Not Finishing).
-    *   Historical stats dashboard with interactive charts showing focus time, idle time, tasks completed, and score over time.
-*   **Multiple Views & Navigation**: 
-    *   **Focus View**: Main timer, current task display, and circular progress.
-    *   **Plan View**: Task planning, task list (now scrollable), and daily stats.
-    *   **Spirals View**: Manage your ideas and future tasks.
-    *   **Settings View**: Customize your application experience.
-    *   **Dashboard View**: Visualize productivity metrics over time with charts.
-    *   Redesigned sidebar navigation with distinct active icon colors.
-*   **Rich Settings Panel**:
-    *   Theme selection (Light/Dark mode).
-    *   Motivation type selection.
-    *   Sound notification toggle.
-    *   Default break duration slider.
-    *   Toggle for allowing break extensions.
-    *   Information display for the points system.
-    *   Daily Reset Time configuration.
-    *   About section with app version (v0.2).
-*   **Desktop Notifications**: Get notified when tasks or breaks end.
-*   **Sound Notifications**: Audible alerts for timer events (toggleable), using a custom annoying sound.
-*   **Responsive Design**: UI adapts to different screen sizes, designed to fit within a single viewport.
-*   **GitHub Pages Deployment Ready**: Configured for easy deployment using `gh-pages`.
-*   **Persistence**: All settings are saved to LocalStorage and persist across sessions.
-*   **Historical Stats Tracking**: Daily stats are automatically saved and can be visualized in the dashboard.
-*   **Data Export/Import**: Export and import your historical stats data for backup or transfer.
-*   **Visually Distinct Heading**: The main application title "Annoying Pomodoro" features "Annoying" with a red/orange gradient and "Pomodoro" as solid text.
-
-## Tech Stack
-
-*   **React**: For building the user interface.
-*   **Tailwind CSS**: For styling the application.
-*   **Lucide React**: For icons.
+- **Core Pomodoro Timer:** Implement classic focus and break sessions.
+- **Task Management:** Add, organize, and track tasks with estimated and actual time spent.
+- **Customizable Motivation:** Choose from different "annoying" quote categories.
+- **Break Control:** Configurable default break duration with the option to allow extending breaks.
+- **Flexible Time Extension:** Extend active task or break timers as needed (with a penalty for tasks).
+- **Points & Scoring:** Earn points based on focus time and efficiency, with deductions for extending tasks.
+- **Spirals (Idea Capture):** A dedicated space to quickly save unrelated ideas without disrupting your focus, with the ability to convert them into tasks later.
+- **Comprehensive Stats & Dashboard:**
+  - Real-time stats in the header (Score, Tasks Done, Focus Time, Idle Time, P(Not Finish)).
+  - Daily stats summary in the Plan view.
+  - Dedicated Dashboard view with historical charts (Focus Time, Idle Time, Tasks Completed, Score).
+  - Data Export/Import for historical stats.
+- **Intuitive Navigation:** Easy switching between Focus, Plan, Spirals, Stats, and Settings views via a responsive side/bottom navigation bar.
+- **Quick Task Addition:** Add a new task quickly from the Focus view using a dedicated button.
+- **Interactive Tutorial:** A step-by-step introduction for first-time users via a modal.
+- **Settings Panel:** Personalize themes (Light/Dark), sounds, break durations, motivation type, daily reset time, and quick task button visibility.
+- **Notifications:** Desktop and sound notifications for timer events.
+- **Persistent Data:** All tasks, spirals, settings, and daily stats are saved locally in your browser (`localStorage`).
+- **Responsive Design:** Adapts to various screen sizes and orientations.
 
 ## Getting Started
 
@@ -95,24 +66,41 @@ This will start the development server, and you can view the application in your
     ```
 3.  Configure your GitHub repository settings to use the `gh-pages` branch for GitHub Pages.
 
+## Usage
+
+Upon opening the application for the first time, a guided tutorial will appear to walk you through the main features and views.
+
+Here's a quick overview of the main sections:
+
+*   **Focus:** This is your main timer view. Start tasks, pause, resume, mark as done, or extend the timer. Keep an eye on the circular progress and the timer display.
+*   **Plan:** Manage your daily tasks here. Add new tasks with estimated durations, and see a summary of your daily productivity stats.
+*   **Spirals:** Use this as a temporary notepad for ideas, distractions, or tasks that come to mind during a focus session. You can move items from Spirals to your main Task list later.
+*   **Stats:** View your historical productivity data through interactive charts, tracking focus time, idle time, completed tasks, and score over time. You can also export and import this data.
+*   **Settings:** Customize the app to your preferences. Change themes, select motivation types, adjust break settings, control sounds, and set your daily reset time.
+
+Use the navigation bar on the left (or bottom on smaller screens) to switch between these views.
+
+## Tech Stack
+
+*   **React**: For building the user interface.
+*   **Tailwind CSS**: For styling the application.
+*   **Lucide React**: For icons.
+*   **Chart.js / react-chartjs-2**: For rendering data visualizations in the Dashboard.
+
 ## Key Components & Logic
 
-*   **`App.js`**: The main application component that manages state for tasks, spirals, timer, score, active view, and all settings. It orchestrates the interactions between various child components and handles core application logic.
-*   **Timer Logic**: Core timer functionality (`startTimer`, `handlePauseTimer`, `handleResumeTimer`, `handleTaskDone`, `handleExtendTimer`, `useEffect` for countdown) is primarily managed within `App.js`.
-*   **Task Components**:
-    *   `TaskForm.jsx`: For adding new tasks.
-    *   `TaskList.jsx`: Displays the list of tasks, including an empty state.
-    *   `TaskItem.jsx`: Renders individual task items with controls and status indicators.
-*   **Spiral Components**:
-    *   `SpiralForm.jsx`: For adding new spirals.
-    *   `SpiralList.jsx`: Displays the list of spirals with controls.
-*   **UI Components (`src/components/ui`)**: Reusable UI elements like `Button.jsx`, `Card.jsx`, `PromptDialog.jsx`.
-*   **State Management**: Primarily uses React's `useState`, `useEffect`, and `useCallback` hooks for managing component and application-level state. Settings are persisted to LocalStorage.
+*   `App.js`: The central component managing application state, core timer logic, task/spiral operations, and settings.
+*   `components/`: Contains reusable UI components and view-specific components (`TaskForm`, `TaskList`, `SpiralForm`, `SpiralList`, `DashboardView`, `TaskShortcut`).
+*   `lib/statsHistory.js`: Handles the saving, loading, and management of historical daily statistics.
+*   State Management: Leverages React hooks (`useState`, `useEffect`, `useCallback`) and `localStorage` for persistence.
 
 ## Future Enhancements (Ideas)
 
+*   More detailed historical stats or trends analysis.
 *   Customizable notification sound choices.
-*   More detailed historical stats or trends.
-*   Export/Import tasks or settings. 
-*   Email notification when break ends.
-*   More detailed historical stats or trends. 
+*   Integration with external task management services.
+*   User accounts and cloud sync (more complex).
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE.md file for details (Note: A `LICENSE.md` file might need to be created if it doesn't exist). 
