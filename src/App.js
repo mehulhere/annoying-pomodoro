@@ -98,6 +98,9 @@ function App() {
   const notificationSound = useRef(null);
   const quoteIntervalId = useRef(null);
 
+  // New state for progress bar total time
+  const [initialTimeForProgress, setInitialTimeForProgress] = useState(0);
+
   // Settings state
   const [quoteType, setQuoteType] = useState("abusive"); // Default quote type
   const [soundEnabled, setSoundEnabled] = useState(true); // Default sound setting
@@ -527,6 +530,7 @@ function App() {
     setTimeRemaining(timeToSet > 0 ? timeToSet : taskToStart.duration * 60); // Ensure it doesn't start negative
     setIsTimerActive(true);
     setIsBreakTime(false); // Ensure break mode is off
+    setInitialTimeForProgress(timeToSet > 0 ? timeToSet : taskToStart.duration * 60); // Set initial time for progress bar
     toast({ title: "Task Started", description: `Timer for "${taskToStart.name}" has begun.` });
   }, [tasks, isTimerActive, isBreakTime, currentTaskIndex, sessionStartTime, setSessionStartTime, setTasks, setCurrentTaskIndex, setTimeRemaining, setIsTimerActive, setIsBreakTime, pauseNotificationSound]); // Added missing dependencies
 
@@ -543,6 +547,7 @@ function App() {
     if (!isTimerActive && timeRemaining > 0 && 
         ((currentTaskIndex !== -1 && tasks[currentTaskIndex] && !tasks[currentTaskIndex].completed && !isBreakTime) || isBreakTime)) {
        setIsTimerActive(true); 
+       // initialTimeForProgress should already be set from when it was paused
        toast({ title: isBreakTime ? "Break Resumed" : "Timer Resumed" });
     }
   }, [isTimerActive, timeRemaining, currentTaskIndex, tasks, isBreakTime, setIsTimerActive]); 
@@ -614,9 +619,11 @@ function App() {
     toast({ title: "Task Finished!", description: `"${task.name}" complete. Points: +${pointsEarnedThisTask}` });
     
     setIsBreakTime(true);
-    setTimeRemaining(breakDuration * 60);
+    const breakTimeSeconds = breakDuration * 60;
+    setTimeRemaining(breakTimeSeconds);
     setCurrentTaskIndex(-1); 
     setIsTimerActive(true); 
+    setInitialTimeForProgress(breakTimeSeconds); // Set initial time for break progress bar
     toast({title: "Break Time!", description: `Taking a ${breakDuration} minute break.`});
   }, [tasks, currentTaskIndex, showDesktopNotification, breakDuration, setScore, setTasks, setIsBreakTime, setTimeRemaining, setCurrentTaskIndex, setIsTimerActive, focusCardRef, pauseNotificationSound]); // Removed playNotificationSound
 
@@ -680,6 +687,13 @@ function App() {
           const newTimeRemaining = timeRemaining + extendMinutes * 60;
           setTimeRemaining(newTimeRemaining);
           
+          // If extending a break, update the initial time for progress bar
+          if (isBreakTime) {
+              setInitialTimeForProgress(prev => prev + extendMinutes * 60);
+          } else if (currentTaskIndex !== -1) { // Also update for tasks
+              setInitialTimeForProgress(prev => prev + extendMinutes * 60);
+          }
+
           let toastDescription = `Added ${extendMinutes} minutes to ${context}.`;
 
           if (!isBreakTime && currentTaskIndex !== -1 && tasks[currentTaskIndex]) {
@@ -1161,20 +1175,20 @@ function App() {
                           r="45" 
                           fill="none" 
                           strokeWidth="2.5" 
-                          stroke={isBreakTime ? "#10b981" : "#22d3ee"} 
+                          stroke={!isTimerActive && timeRemaining > 0 ? '#facc15' : (isBreakTime ? '#10b981' : (isTimerActive ? '#22d3ee' : 'rgba(255,255,255,0.1)'))} 
                           strokeLinecap="round"
                           strokeDasharray="283" 
                           strokeDashoffset={(() => {
                             // If idle, show full circle
-                            if (!isTimerActive && (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)) {
+                            if (!isTimerActive && currentTaskIndex === -1 && !isBreakTime && timeRemaining === 0) { // Added timeRemaining === 0
                               return 0; // Full circle
                             }
                              // Calculate progress percentage (elapsed time relative to total)
-                             const totalTime = isBreakTime 
-                               ? (breakDuration * 60) 
+                             const totalTime = (isTimerActive || (!isTimerActive && timeRemaining > 0)) 
+                               ? initialTimeForProgress 
                                : (currentTaskIndex !== -1 && tasks[currentTaskIndex] 
-                                 ? tasks[currentTaskIndex].estimatedDuration * 60 
-                                 : 0);
+                                   ? tasks[currentTaskIndex].estimatedDuration * 60 // Fallback for completed/over tasks
+                                   : (isBreakTime ? breakDuration * 60 : 0)); // Fallback for break (shouldn't be hit if using initialTimeForProgress)
                              
                              if (totalTime <= 0) return "283"; // Default to empty if no total time
                              
@@ -1191,31 +1205,36 @@ function App() {
                       </svg>
                       
                       {/* Adjusted styling: Apply responsive font size based on viewport height */}
-                      <div id="timer-clock-react" className={`text-[6vh] text-[length:clamp(0rem,min(6vh,14vw),4rem)] font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500`}>
+                      <div id="timer-clock-react" className={`text-[6vh] text-[length:clamp(0rem,min(6vh,14vw),4rem)] font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500 ${!isTimerActive && currentTaskIndex === -1 ? 'mt-2' : 'mt-1'}`}>
                         {formatTime(timeRemaining)}
                       </div>
                       {isTimerActive && !isBreakTime && (
-                        <div className="mt-1 text-xs sm:text-sm text-gray-400 uppercase tracking-widest animate-pulse">
+                        <div className="mt-1 text-xs sm:text-sm text-gray-400 uppercase tracking-widest animate-pulse text-center">
                           FOCUS IN PROGRESS
                         </div>
                       )}
                       {isTimerActive && isBreakTime && (
-                        <div className="mt-1 text-xs sm:text-sm text-emerald-400 uppercase tracking-widest animate-pulse">
+                        <div className="mt-1 text-xs sm:text-sm text-emerald-400 uppercase tracking-widest animate-pulse text-center">
                           BREAK IN PROGRESS
                         </div>
                       )}
-                      {!isTimerActive && timeRemaining > 0 && currentTaskIndex !== -1 && !isBreakTime && (
-                         <div className="mt-1 text-xs sm:text-sm text-yellow-500 uppercase tracking-widest">
+                      {!isTimerActive && timeRemaining > 0 && (currentTaskIndex !== -1 || isBreakTime) && (
+                         <div className="mt-1 text-xs sm:text-sm text-yellow-500 uppercase tracking-widest text-center">
                            PAUSED
                          </div>
                       )}
-                        {!isTimerActive && currentTaskIndex === -1 && (
+                      {!isTimerActive && timeRemaining === 0 && currentTaskIndex !== -1 && !isBreakTime && (
+                         <div className="mt-1 text-xs sm:text-sm text-red-500 uppercase tracking-widest text-center">
+                           TIMER OVER
+                         </div>
+                      )}
+                        {!isTimerActive && timeRemaining === 0 && currentTaskIndex === -1 && (
                           <div className="mt-1 text-sm sm:text-[0.82rem] tracking-widest text-gray-400 uppercase text-center animate-pulse">
                             CLOCKS TICKING...
                             <br />
                             NOT YOURS
                           </div>
-                        )}
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1224,7 +1243,7 @@ function App() {
                 <div className="flex justify-center gap-2 sm:gap-4 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2"> {/* Increased default pb, Added mb-4 sm:mb-0, Increased sm:gap */}
                   <button
                     onClick={handleMasterPlayPause}
-                    disabled={isTimerActive ? false : !tasks.some(task => !task.completed)}
+                    disabled={isTimerActive ? false : (!tasks.some(task => !task.completed) && (!isBreakTime || timeRemaining === 0))}
                     className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
