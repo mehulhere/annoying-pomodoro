@@ -1163,7 +1163,7 @@ function App() {
                   // For specific colors like cyanAccent, you might need to map them to RGB if not directly usable in rgba()
                 >
                   <IconComponent className={`h-5 w-5 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mb-1 sm:mb-2 ${getIconClass(isActive, item.color)}`} />
-                  <span className={`${isActive ? 'font-bold text-lightText' : 'font-small text-subtleText/90'} truncate`}>{item.label}</span>
+                  <span className={`${isActive ? 'font-semibold text-lightText' : 'text-subtleText/90'} truncate`}>{item.label}</span>
                 </UIButton>
               );
             })}
