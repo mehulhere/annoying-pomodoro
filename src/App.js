@@ -1341,6 +1341,7 @@ function App() {
     setActiveView('focus'); // Start tutorial from focus view
   };
 
+  
   // JSX will be in the next part
   return (
     <div 
@@ -1551,10 +1552,10 @@ function App() {
                 </div>
 
                 {/* Timer Circle - centered in the container */}
-                <div className="flex-grow flex items-center justify-center timer-container">
+                <div id="timer-circle-container" className={`flex-grow flex items-center justify-center timer-container`}>
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-2xl scale-110"></div>
-                    <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-full w-[min(35vh,70vw)] h-[min(35vh,70vw)] min-w-[150px] min-h-[150px] flex flex-col items-center justify-center shadow-2xl timer-circle">
+                    <div className={`relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-full w-[min(35vh,70vw)] h-[min(35vh,70vw)] min-w-[150px] min-h-[150px] flex flex-col items-center justify-center shadow-2xl timer-circle ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'w-[min(40vh,70vw)] h-[min(40vh,70vw)]' : 'w-[min(35vh,70vw)] h-[min(35vh,70vw)]'}`}>
                       {/* Circular Progress Indicator */}
                       <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                         {/* Background track */}
@@ -1603,34 +1604,33 @@ function App() {
                       </svg>
                       
                       {/* Adjusted styling: Apply responsive font size based on viewport height */}
-                      <div id="timer-clock-react" className={`text-[6vh] text-[length:clamp(0rem,min(6vh,14vw),4rem)] font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500 ${!isTimerActive && currentTaskIndex === -1 ? 'mt-2' : 'mt-1'}`}>
+                      <div id="timer-clock-react" className={`text-[6vh] text-[length:clamp(0rem,min(6vh,14vw),4rem)] font-mono font-bold ${timerDisplayColor()} tabular-nums tracking-tight transition-all duration-500 ${!isTimerActive && currentTaskIndex === -1 ? 'mt-2' : 'mt-1'} ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'text-[7.5vh]' : ''}`}>
                         {formatTime(timeRemaining)}
                       </div>
                       {isTimerActive && !isBreakTime && (
-                        <div className="mt-1 text-xs sm:text-sm text-gray-400 uppercase tracking-widest animate-pulse text-center">
+                        <div className="mt-1 text-xs sm:text-sm text-gray-400 uppercase tracking-widest animate-pulse text-center ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'sm:text-[2.25vh]' : ''}">
                           FOCUS IN PROGRESS
                         </div>
                       )}
                       {isTimerActive && isBreakTime && (
-                        <div className="mt-1 text-xs sm:text-sm text-emerald-400 uppercase tracking-widest animate-pulse text-center">
+                        <div className="mt-1 text-xs sm:text-sm text-emerald-400 uppercase tracking-widest animate-pulse text-center ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'sm:text-[2.25vh]' : ''}">
                           BREAK IN PROGRESS
                         </div>
                       )}
                       {!isTimerActive && timeRemaining > 0 && (currentTaskIndex !== -1 || isBreakTime) && (
-                         <div className="mt-1 text-xs sm:text-sm text-yellow-500 uppercase tracking-widest text-center">
+                         <div className="mt-1 text-xs sm:text-sm text-yellow-500 uppercase tracking-widest text-center ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'sm:text-[2.25vh]' : ''}">
                            PAUSED
                          </div>
                       )}
                       {!isTimerActive && timeRemaining === 0 && currentTaskIndex !== -1 && !isBreakTime && (
-                         <div className="mt-1 text-xs sm:text-sm text-red-500 uppercase tracking-widest text-center">
+                         <div className="mt-1 text-xs sm:text-sm text-red-500 uppercase tracking-widest text-center ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'sm:text-[2.25vh]' : ''}">
                            TIMER OVER
                          </div>
                       )}
                         {!isTimerActive && timeRemaining === 0 && currentTaskIndex === -1 && (
-                          <div className={`mt-1 ${isExtraSmallScreen ? 'text-xs' : 'text-sm'} ${viewportHeight < 630 ? 'sm: text-[2vh]' : 'sm:text-[2vh]'} tracking-widest text-gray-400 uppercase text-center animate-pulse`}>
-                            CLOCKS TICKING...
-                            <br />
-                            NOT YOURS
+                          <div className={`mt-1 ${isExtraSmallScreen ? 'text-xs' : 'text-sm'} tracking-widest text-gray-400 uppercase text-center animate-pulse ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'sm:text-[2.25vh]' : 'sm:text-[2vh]'}`}>
+                              <div className={`text-gray-400 ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'mb-[0.4em]' : ''}`}>CLOCKS TICKING...</div>
+                              <div className="text-gray-400">NOT YOURS</div>
                           </div>
                       )}
                     </div>
@@ -1643,7 +1643,7 @@ function App() {
                     onClick={handleMasterPlayPause}
                     disabled={isTimerActive ? false : (!tasks.some(task => !task.completed) && (!isBreakTime || timeRemaining === 0))}
                     className={`group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center
-                      ${viewportHeight < 780 && viewportHeight < window.innerWidth
+                      ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
                         : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
@@ -1651,12 +1651,12 @@ function App() {
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className={`relative flex items-center
-                      ${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                      ${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
                     `}> {/* Increased default gap */}
                       {isTimerActive ?
-                        <Pause className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
+                        <Pause className={`${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
                         :
-                        <Play className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
+                        <Play className={`${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} />
                       } {/* Increased default and xl icon size */}
                       {isTimerActive ? 'Pause' : (timeRemaining > 0 ? 'Resume' : 'Start')}
                     </div>
@@ -1665,15 +1665,15 @@ function App() {
                   <button 
                       onClick={() => {
                         if (isBreakTime) {
-                          handleSkipBreak();
+                          handleSkipBreak(); // Use handleSkipBreak from useTimer hook
                         } else {
-                          handleTaskDone();
+                          handleTaskDone(); // Use handleTaskDone from useTimer hook
                         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                       }
                     }}
                     disabled={isBreakTime ? !isTimerActive : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)}
                     className={`group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
-                      ${viewportHeight < 780 && viewportHeight < window.innerWidth
+                      ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
                         : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
@@ -1681,18 +1681,18 @@ function App() {
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className={`relative flex items-center
-                      ${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                      ${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
                     `}> {/* Increased default gap */}
-                      <CheckCircle className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
+                      <CheckCircle className={`${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
                       {isBreakTime ? 'Skip Break' : 'Done!'}
                 </div>
                   </button>
                   
                   <button 
-                    onClick={handleExtendTimer}
-                    disabled={isBreakTime ? !allowExtendBreak : (timeRemaining > 0 || currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed)}
+                    onClick={handleExtendTimer} // Use handleExtendTimer from useTimer hook
+                    disabled={isBreakTime ? !allowExtendBreak : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed || timeRemaining === 0) }
                      className={`group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
-                       ${viewportHeight < 780 && viewportHeight < window.innerWidth
+                       ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
                         : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
@@ -1700,9 +1700,9 @@ function App() {
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     <div className={`relative flex items-center
-                      ${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
+                      ${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}
                     `}> {/* Increased default gap */}
-                      <Plus className={`${viewportHeight < 780 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
+                      <Plus className={`${viewportHeight < 820 && viewportHeight < window.innerWidth ? 'h-3.5 w-3.5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-4 xl:w-4' : 'h-4 w-4 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-5 xl:w-5'}`} /> {/* Increased default and xl icon size */}
                     Extend
                 </div>
                   </button>
@@ -1719,40 +1719,40 @@ function App() {
                   <UICardContent className="flex-grow flex flex-col overflow-hidden p-6"> {/* UICardContent for Plan Your Day */}
                     <TaskFormC onAddTask={handleAddTask} />
                     <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5 flex-grow overflow-y-auto"> {/* This div will contain stats and session time, it grows and scrolls */}
-                    <h3 className="text-sm font-semibold text-cyanAccent mb-2">Daily Stats</h3>
-                    <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs">
-                      <div className="flex justify-between items-center">
-                        <span className="text-subtleText flex items-center">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyanAccent mr-1.5"></span>
-                          Total Tasks:
-                        </span>
-                        <span className='text-teal-400 font-semibold'>{tasks.length}</span>
+                      <h3 className="text-sm font-semibold text-cyanAccent mb-2">Daily Stats</h3>
+                      <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs">
+                        <div className="flex justify-between items-center">
+                          <span className="text-subtleText flex items-center">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyanAccent mr-1.5"></span>
+                            Total Tasks:
+                          </span>
+                          <span className='text-teal-400 font-semibold'>{tasks.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-subtleText flex items-center">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5"></span>
+                            Total Planned:
+                          </span>
+                          <span className='text-teal-400 font-semibold'>{dailyStats.totalPlannedTime} min</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-subtleText flex items-center">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                            Remaining:
+                          </span>
+                          <span className='text-teal-400 font-semibold'>{dailyStats.estimatedRemainingTaskTimeMinutes} min</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-subtleText flex items-center">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
+                            P(Not Finishing):
+                          </span>
+                          <span className='text-teal-400 font-semibold'>{dailyStats.probNotFinishing}%</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-subtleText flex items-center">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5"></span>
-                          Total Planned:
-                        </span>
-                        <span className='text-teal-400 font-semibold'>{dailyStats.totalPlannedTime} min</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-subtleText flex items-center">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                          Remaining:
-                        </span>
-                        <span className='text-teal-400 font-semibold'>{dailyStats.estimatedRemainingTaskTimeMinutes} min</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-subtleText flex items-center">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
-                          P(Not Finishing):
-                        </span>
-                        <span className='text-teal-400 font-semibold'>{dailyStats.probNotFinishing}%</span>
-                      </div>
-                    </div>
 
                       {/* Session End Time - collapsible section */}
-                    <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5">
+                      <div className="mt-4 pt-4 border-t border-dark-300/40 space-y-2.5">
                         <button 
                           onClick={() => setIsSessionEndTimeExpanded(!isSessionEndTimeExpanded)}
                           className="w-full flex justify-between items-center text-sm font-semibold text-cyanAccent mb-2 focus:outline-none hover:text-brightAccent transition-colors"
@@ -1762,47 +1762,47 @@ function App() {
                         </button>
                         {isSessionEndTimeExpanded && (
                           <div className="bg-dark-300/25 rounded-md p-3 space-y-2.5 text-xs animate-fadeIn">
-                         <div className="flex justify-between items-center mb-3">
-                            <div className="flex items-center">
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="flex items-center">
                                 <Clock className="h-3.5 w-3.5 mr-1 text-cyanAccent" />
                                 <span className="font-medium text-xs md:text-sm">Set End Time</span>
-                            </div>
-                            <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
+                              </div>
+                              <div className="bg-dark-200/80 text-subtleText rounded px-2 py-0.5 text-[10px] md:text-xs flex items-center">
                                 {customFinishTime || 'Not Set'}
+                              </div>
                             </div>
-                         </div>
-                         <div className="flex items-center gap-2">
-                            <input
+                            <div className="flex items-center gap-2">
+                              <input
                                 type="time"
                                 value={customFinishTime || ''}
                                 onChange={(e) => setCustomFinishTime(e.target.value)}
                                 className="w-full bg-dark-200/70 border border-dark-300/50 rounded p-1.5 text-xs md:text-sm focus:ring-cyanAccent focus:border-cyanAccent appearance-none"
                                 style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }} // Ensures native time picker matches theme
-                             />
+                              />
                               <UIButton
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => setCustomFinishTime(null)}
                                 disabled={!customFinishTime}
                                 className="py-1 px-2 text-xs"
-                            >
+                              >
                                 Clear
                               </UIButton>
-                         </div>
-                         <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
-                            Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finishing).
-                         </div>
-                      </div>
+                            </div>
+                            <div className="text-[9px] md:text-[10px] text-subtleText/70 mt-1.5 pl-0.5">
+                              Set a temporary end time for today's session. Overrides Daily Reset Time for P(Not Finishing).
+                            </div>
+                          </div>
                         )}
-                    </div>
-                    </div> {/* Closing the flex-grow div for stats and session time */}
+                      </div>
+                    </div> {/* This closes the div starting on line 1491 */}
                     
                     {/* Clear All Tasks Button - pushed to bottom */}
                     <div className="mt-auto pt-4 border-t border-dark-300/40">
                          <UIButton
                            variant="destructive"
                            size="sm"
-                           onClick={handleClearAllTasks}
+                           onClick={handleClearAllTasks} // Use handleClearAllTasks from useTasksAndSpirals hook
                            disabled={tasks.length === 0}
                            className="w-full py-2 text-xs"
                        >
@@ -1820,7 +1820,6 @@ function App() {
                     <div className="tall-task-list flex flex-col flex-grow"> {/* Added flex flex-col flex-grow */}
                       <TaskListC 
                         className="task-list-override"
-                        style={{ "--task-max-height": "400px" }} // CSS variable that will be used in TaskListC
                         tasks={[...tasks].sort((a, b) => {
                           // Sort uncompleted tasks first
                           if (a.completed && !b.completed) return 1;
@@ -1833,16 +1832,7 @@ function App() {
                           const taskIndex = currentTasks.findIndex(t => t.id === taskId);
                           
                           if (taskIndex !== -1) {
-                              if (taskIndex < 0 || taskIndex >= currentTasks.length || !currentTasks[taskIndex]) {
-                                  console.error("[App onStartTask] taskIndex out of bounds for current tasks.", 
-                                      { taskId, taskIndex, currentTasksLength: currentTasks.length });
-                                  toast({ 
-                                      title: "Task Sync Issue", 
-                                      description: "State inconsistency before starting timer. Please try again.", 
-                                      variant: "destructive" 
-                                  });
-                                  return;
-                              }
+                              // startTimer is now from useTimer hook
                               startTimer(taskIndex);
                           } else {
                               console.error("[App onStartTask] Task ID not found in current tasks:", { taskId });
@@ -1858,7 +1848,7 @@ function App() {
                       isTimerActive={isTimerActive} 
                       isBreakTime={isBreakTime}
                       timeRemaining={timeRemaining}
-                      onMarkTaskDone={handleTaskDone} // Added this line
+                      onMarkTaskDone={handleTaskDone} // Use handleTaskDone from useTimer hook
                   />
                     </div>
                   </UICardContent>
@@ -1876,8 +1866,8 @@ function App() {
                 <div className="mt-4 flex-grow overflow-y-auto">
                     <SpiralListC 
                     spirals={spirals} 
-                    onRemoveSpiral={handleRemoveSpiral} 
-                    onMoveSpiralToTasks={handleMoveSpiralToTasks} 
+                    onRemoveSpiral={handleRemoveSpiral} // Uses wrapped App.js version
+                    onMoveSpiralToTasks={handleMoveSpiralToTasks} // Uses wrapped App.js version
                   />
                 </div>
                 </UICardContent>
@@ -2021,7 +2011,7 @@ function App() {
                       <button 
                         className="w-full bg-gradient-to-r from-blue-600/80 to-cyan-600/80 hover:from-blue-500/90 hover:to-cyan-500/90 text-white py-1.5 rounded-md text-xs md:text-sm font-medium transition-all duration-300 flex items-center justify-center gap-1.5"
 
-                        onClick={handleRestartTutorial}
+                        onClick={() => handleRestartTutorial(setActiveView)}
                       >
                         <Play className="h-3.5 w-3.5" /> Restart Tutorial
                       </button>
@@ -2138,7 +2128,7 @@ function App() {
                 <div className="flex flex-col sm:flex-row justify-between items-center pt-3 border-t border-gray-700/50 gap-2 sm:gap-0"> {/* Adjusted layout for mobile */}
                   <UIButton 
                     variant="outline"
-                    onClick={handleFinishTutorial} // Skip button always finishes/skips
+                    onClick={() => handleFinishTutorial(setActiveView)} // Skip button always finishes/skips
                     className="text-xs sm:text-sm"
                   >
                     Skip Tutorial
@@ -2147,7 +2137,7 @@ function App() {
                     {currentTutorialStep > 0 && (
                       <UIButton 
                         variant="outline"
-                        onClick={handlePrevTutorialStep}
+                        onClick={() => handlePrevTutorialStep(setActiveView)}
                         className="text-xs sm:text-sm"
                       >
                         Previous
@@ -2156,7 +2146,7 @@ function App() {
                     {currentTutorialStep < tutorialSteps.length - 1 ? (
                       <UIButton 
                         variant="default"
-                        onClick={handleNextTutorialStep}
+                        onClick={() => handleNextTutorialStep(setActiveView)}
                         className="bg-cyanAccent hover:bg-cyanAccent/90 text-black text-xs sm:text-sm"
                       >
                         Next
@@ -2164,7 +2154,7 @@ function App() {
                     ) : (
                       <UIButton 
                         variant="default"
-                        onClick={handleFinishTutorial}
+                        onClick={() => handleFinishTutorial(setActiveView)}
                         className="bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm"
                       >
                         Finish
