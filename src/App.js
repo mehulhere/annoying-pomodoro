@@ -1140,25 +1140,36 @@ function App() {
   };
 
   const calculateDailyStats = useCallback(() => {
-    const totalPlannedDuration = tasks.reduce((acc, task) => acc + task.estimatedDuration, 0); // in minutes
+    const totalPlannedDuration = tasks.reduce((acc, task) => acc + (task?.estimatedDuration ?? 0), 0); // in minutes, added safety
 
     let accumulatedFocusTimeSeconds = tasks.reduce((acc, task) => {
+      // Safely access task and its properties
+      if (!task) return acc; // Skip if task is undefined
       if (task.completed) {
-        return acc + (task.timeSpentSeconds || 0);
+        return acc + (task.timeSpentSeconds ?? 0);
       }
-      if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !task.completed && !isBreakTime) {
-        return acc + (task.timeSpentSeconds || 0); // Ensure timeSpentSeconds is included for active task
+      // Check if it's the current active task and timer is running (and not break)
+      if (task.id === (tasks[currentTaskIndex]?.id) && !task.completed && !isBreakTime && isTimerActive) {
+          // For active task while timer is running, calculate time spent since start
+          const timeElapsedSinceStart = task.timerStartTime ? Math.floor((Date.now() - task.timerStartTime) / 1000) : 0;
+          return acc + (task.timeSpentSeconds ?? 0) + timeElapsedSinceStart;
+      } else if (task.id === (tasks[currentTaskIndex]?.id) && !task.completed && !isBreakTime && !isTimerActive) {
+          // For active but paused task, include already accumulated timeSpentSeconds
+           return acc + (task.timeSpentSeconds ?? 0);
       }
-      return acc;
+      // For other uncompleted/inactive tasks, don't add their timeSpentSeconds here
+      return acc; // Do not add timeSpentSeconds if not the current active task
     }, 0);
     
     const remainingUncompletedTaskMinutes = tasks
       .filter(task => !task.completed)
       .reduce((acc, task) => {
+          // Safely access task and its properties
+          if (!task) return acc; // Skip if task is undefined
           if (task.id === (tasks[currentTaskIndex] && tasks[currentTaskIndex].id) && !isBreakTime) {
             return acc + Math.max(0, Math.ceil(timeRemaining / 60));
           }
-          return acc + task.estimatedDuration;
+          return acc + (task.estimatedDuration ?? 0); // Added safety
       }, 0);
 
     const now = new Date();
