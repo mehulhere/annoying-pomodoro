@@ -531,7 +531,8 @@ function App() {
         setSessionStartTime(sSessionStart ? (parseInt(sSessionStart, 10) || null) : null);
         
         const sCurrentTaskIndex = localStorage.getItem('currentTaskIndex');
-        setCurrentTaskIndex(sCurrentTaskIndex ? (parseInt(sCurrentTaskIndex, 10) || -1) : -1);
+        // Make sure we handle the case where currentTaskIndex is 0 (first task)
+        setCurrentTaskIndex(sCurrentTaskIndex !== null ? parseInt(sCurrentTaskIndex, 10) : -1);
 
         const sTimeRemaining = localStorage.getItem('timeRemaining');
         setTimeRemaining(sTimeRemaining ? (parseInt(sTimeRemaining, 10) || 0) : 0);
