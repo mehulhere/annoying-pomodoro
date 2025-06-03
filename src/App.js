@@ -1638,14 +1638,14 @@ function App() {
                 </div>
                 
                 {/* Control Buttons */}
-                <div className="flex justify-center gap-2 sm:gap-4 lg:gap-5 xl:gap-5 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2"> {/* Increased gap for large breakpoints, Increased default pb, Added mb-4 sm:mb-0 */}
+                <div className={`flex justify-center gap-[5vw] sm:gap-4 lg:gap-5 xl:gap-5 mt-4 mb-4 sm:mb-0 pb-2 sm:pb-2 ${viewportHeight > 780 && viewportHeight < window.innerWidth ? 'gap-3 sm:gap-4 lg:gap-5 xl:gap-5' : ''}`}> {/* Increased gap for large breakpoints, Increased default pb, Added mb-4 sm:mb-0 */}
                   <button
                     onClick={handleMasterPlayPause}
                     disabled={isTimerActive ? false : (!tasks.some(task => !task.completed) && (!isBreakTime || timeRemaining === 0))}
                     className={`group relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center
                       ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
-                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
+                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[24vw] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
                     `}
                   >
@@ -1675,7 +1675,7 @@ function App() {
                     className={`group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
                       ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
-                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
+                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[24vw] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
                     `}
                   >
@@ -1694,7 +1694,7 @@ function App() {
                      className={`group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
                        ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
-                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[80px] sm:w-[100px] lg:w-[135px] xl:w-[150px]'
+                        : 'py-2 sm:py-3 lg:py-4 xl:py-4 text-sm sm:text-base xl:text-lg w-[24vw] h-[45px] sm:h-auto sm:w-[100px] lg:w-[135px] xl:w-[150px]'
                       }
                     `}
                   >
