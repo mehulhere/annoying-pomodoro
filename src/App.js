@@ -548,6 +548,10 @@ function App() {
     const savedSpirals = localStorage.getItem('spirals');
     if (savedSpirals) { try { setSpirals(JSON.parse(savedSpirals)); } catch (e) { console.error("Error parsing spirals from localStorage", e); setSpirals([]); } } else { setSpirals([]); }
     
+    // Load initialTimeForProgress state
+    const sInitialTimeForProgress = localStorage.getItem('initialTimeForProgress');
+    setInitialTimeForProgress(sInitialTimeForProgress ? (parseInt(sInitialTimeForProgress, 10) || 0) : 0);
+
     setIsLoaded(true); 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ESLint disabled due to complex, time-sensitive logic that uses state values from *before* potential reset
@@ -578,6 +582,9 @@ function App() {
     localStorage.setItem('isTimerActive', isTimerActive.toString());
     localStorage.setItem('isBreakTime', isBreakTime.toString());
     
+    // Save initialTimeForProgress state
+    localStorage.setItem('initialTimeForProgress', initialTimeForProgress.toString());
+
     // Destructure tasks for clarity, though not strictly necessary for the fix
     const currentTasks = tasks;
     const currentScore = score;
@@ -596,7 +603,7 @@ function App() {
       };
       statsHistory.saveDailyStats(currentStats);
     }
-  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime, isQuickTaskEnabled]);
+  }, [quoteType, soundEnabled, theme, breakDuration, allowExtendBreak, dailyResetTime, tasks, spirals, score, sessionStartTime, currentTaskIndex, timeRemaining, isTimerActive, isBreakTime, isLoaded, lastResetTimestamp, displayedIdleTime, calculateFocusTime, isQuickTaskEnabled, initialTimeForProgress]);
 
   // Apply theme class to body when it changes
   useEffect(() => {
@@ -1411,7 +1418,7 @@ function App() {
           </div>
         
           {/* Stats Grid - This is the existing stats display from your file */}
-          <div className="mt-2 sm:mt-4 pt-1 sm:pt-2 lg:pt-6 xl:pt-8 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-2 sm:gap-3 lg:gap-4"> {/* Added large and extra large top padding, Reduced spacing */}
+          <div className="mt-2 sm:mt-4 pt-1 sm:pt-2 lg:pt-6 xl:pt-6 border-t border-dark-300/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 justify-around items-center gap-2 sm:gap-3 lg:gap-4"> {/* Added large and extra large top padding, Reduced spacing */}
           <div className="flex flex-col items-center group">
               <div className="flex items-center text-subtleText text-[10px] sm:text-xs md:text-sm uppercase tracking-wider mb-0.5 font-medium"> {/* Smaller text */}
                 <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5 text-cyanAccent transition-transform duration-300 group-hover:scale-110" /> {/* Smaller icon */}
@@ -1592,7 +1599,7 @@ function App() {
                              if (totalTime <= 0) return "283"; // Default to empty if no total time
                              
                              // Calculate elapsed time
-                             const elapsed = totalTime - timeRemaining;
+                             const elapsed = totalTime - timeRemaining; // totalTime is now initialTimeForProgress state
                              // Calculate progress (percentage of time elapsed)
                              const progress = 1 - elapsed / totalTime;
                              
@@ -1690,7 +1697,7 @@ function App() {
                   
                   <button 
                     onClick={handleExtendTimer} // Use handleExtendTimer from useTimer hook
-                    disabled={isBreakTime ? !allowExtendBreak : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || !tasks[currentTaskIndex].started || tasks[currentTaskIndex].completed || timeRemaining === 0) }
+                    disabled={isBreakTime ? (!isTimerActive || !allowExtendBreak) : (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed || isTimerActive || timeRemaining !== 0) }
                      className={`group relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center text-center
                        ${viewportHeight < 820 && viewportHeight < window.innerWidth
                         ? 'py-1.5 sm:py-2 lg:py-3 xl:py-3 text-xs sm:text-sm xl:text-base w-[70px] sm:w-[90px] lg:w-[120px] xl:w-[135px]'
