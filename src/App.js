@@ -1125,8 +1125,9 @@ function App() {
     // Idle state: timer is not active, no task index, or task completed
     if (!isTimerActive && (currentTaskIndex === -1 || !tasks[currentTaskIndex] || tasks[currentTaskIndex].completed)) return 'text-greeb-400'; // Default/idle color
     
-    const task = tasks[currentTaskIndex];
-    const totalTaskSeconds = task.estimatedDuration * 60;
+    // Safely access task and its estimated duration
+    const task = currentTaskIndex !== -1 && tasks[currentTaskIndex] ? tasks[currentTaskIndex] : null;
+    const totalTaskSeconds = (task?.estimatedDuration ?? 0) * 60;
     // If task has no duration or timer is active but timeRemaining is 0, default to teal
     if ((totalTaskSeconds === 0 && !isBreakTime) || (isTimerActive && timeRemaining === 0 && !isBreakTime)) return 'text-teal-400'; 
     
