@@ -30,6 +30,11 @@ function TaskForm({ onAddTask }) {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-3">
+            <style jsx>{`
+                input::placeholder {
+                    opacity: 0.33; /* Adjust opacity as needed */
+                }
+            `}</style>
             <div className={`transition-all duration-300 ${isFocused.name ? 'scale-[1.005]' : ''}`}>
                 <Label
                     htmlFor="task-name-input"
